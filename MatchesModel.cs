@@ -1,0 +1,28 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace Scrappy2._0
+{
+        class MatchesModel
+        {
+            [BsonId]
+            public Guid Id { get; set; }
+            public string RefTag { get; set; }
+            public string HomeTeamName { get; set; }
+            public string AwayTeamName { get; set; }
+            public string SmarketsHomeOdds { get; set; }
+            public string SmarketsAwayOdds { get; set; }
+            public string B365HomeOdds { get; set; }
+            public string B365DrawOdds { get; set; }
+            public string B365AwayOdds { get; set; }
+            public string B365BTTSOdds { get; set; }
+            public string B365O25GoalsOdds { get; set; }
+            public DateTime StartDateTime { get; set; }
+            public string League { get; set; }
+
+        }
+   
+}
