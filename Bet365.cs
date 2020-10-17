@@ -12,7 +12,7 @@ using OpenQA.Selenium.Chrome;
 
 namespace Scrappy2._0
 {
-    class Bet365 : RootClass
+    class Bet365 : XpathDirectory
     {
         public static Dictionary<string, string> leagueCountry = new Dictionary<string, string>();
         public static Dictionary<string, string> customList = new Dictionary<string, string>();
@@ -26,6 +26,16 @@ namespace Scrappy2._0
         {
             bool validate;
             string userInput;
+            string bothToScoreSelected;
+
+            do
+            {
+                Console.WriteLine("Scrape BTTS, O2.5? (Y/N)");
+                string optionSelected = Console.ReadLine();
+                bothToScoreSelected = optionSelected.ToLower();
+                validate = bothToScoreSelected == "y" ? true : bothToScoreSelected == "n" ? true : ThrowMessage();
+                Program.bttsEnabled = bothToScoreSelected == "y" ? true : false;              
+            } while (!validate);
 
             Console.WriteLine("Select Leagues you want to scrape");
             DisplayLeagues();
@@ -43,7 +53,7 @@ namespace Scrappy2._0
             }
             else if (userInput == "all")
             {
-                userInput = "0,1,2,3,4,5,6,7,8,9,10,11,12";
+                userInput = "0,1,2,3,4,5,6,7,8,9,10,11,12"; //make this code adaptable
                 CreateCustomLeagueList(userInput);
             }
 
@@ -85,47 +95,55 @@ namespace Scrappy2._0
 
                 string divisionTitle = item.Value;
                 string leagueTitle = item.Key;
-                string leagueXPath = ForLeagueXpath(divisionTitle, leagueTitle); //BuildXpath for Scenario '1'
-                IWebElement leagueIWebElement = AWebElement(leagueXPath);
-
-                if (IsAccessibleCheck(divisionTitle, leagueTitle)) //Checks to see if leagues are accessible. 
+                bool leagueExists = AccessLeagueElement(divisionTitle, leagueTitle); // Finds an IWebElement for a specific league, then clicks on that element to expose all matches. 
+                
+                if(leagueExists == true)
                 {
-                    //Access the league.
-                    if (leagueIWebElement != null)
-                    {
-                        ClickLeagueElement(divisionTitle, leagueTitle);   //Method will bring you to list of Matches for specified league.               
-                        GetLeagueData(DATERANGE, leagueTitle, divisionTitle);
-                    }
-                    else
-                    {
-                        Console.WriteLine("INACTIVE: {1}, {0}", divisionTitle, leagueTitle);
-                    }
+                    GetLeagueData(DATERANGE, leagueTitle, divisionTitle); 
+                } else {
+                    Console.WriteLine("INACTIVE: {1}, {0}", divisionTitle, leagueTitle);
                 }
             }
         }
+
+        private static bool AccessLeagueElement(string divisionTitle, string leagueTitle)
+        {
+            string leagueXPath = GetLeagueXpath(divisionTitle, leagueTitle);                //Acquire Xpath to get specific leagues.
+            IWebElement leagueIWebElement = AWebElement(leagueXPath);
+
+            if (IsAccessibleCheck(divisionTitle, leagueTitle))                              //Checks to see if leagues are accessible. HeadOpen class activated or not? If not, should open it.
+            {
+                //Access the league.
+                if (leagueIWebElement != null)
+                {
+                    ClickLeagueElement(divisionTitle, leagueTitle);     //Method will bring you to list of Matches for specified league.   
+                    return true;
+                } else {
+                    return false;
+                }               
+            }
+            return false;
+        }
+
         public static void ClickLeagueElement(string _divisionTitle, string _leagueTitle)
         {
-            // get webElement click, then scrape.
-            string leagueXPath = ForLeagueXpath(_divisionTitle, _leagueTitle); //BuildXpath for Scenario '1'
-            RandomSleep(3000);
+            
+            string leagueXPath = GetLeagueXpath(_divisionTitle, _leagueTitle); //BuildXpath for Scenario '1'
+            RandomSleep(2500);
             IWebElement leagueIWebElement;
             try
             {
-
                 leagueIWebElement = AWebElement(leagueXPath);
-                if (leagueIWebElement == null)
-                {
-                    Console.WriteLine("Did not find this, skipping {0} {1}", _divisionTitle, _leagueTitle);
-                }
-                else
-                {
-                    leagueIWebElement.Click();
-                }
-
+                    if (leagueIWebElement == null)
+                    {
+                        Console.WriteLine("League xPath not found. Skipping {0} {1}", _divisionTitle, _leagueTitle);
+                    } else {
+                        leagueIWebElement.Click();
+                    }
             }
             catch (NullReferenceException)
             {
-                Console.WriteLine("Can't find: {0}:{1} IWebElement", _divisionTitle, _leagueTitle);
+                Debug.Print("ClickLeagueElement couldn't find: {0}:{1} IWebElement", _divisionTitle, _leagueTitle);
                 throw;
             }
         }
@@ -174,7 +192,7 @@ namespace Scrappy2._0
                             MatchPath package = new MatchPath(divisionTitle, leagueTitle, matchDetails[0].Trim(), tempDate, matchDetails[1].Trim(), matchDetails[2].Trim());
 
                             string index = pathCount.ToString();
-                            string forOdds = GetOdds(index);
+                            string forOdds = GetOddsXpath(index);
                             List<IWebElement> oddsList = WebElements(forOdds);
 
                             //DebugPrintOdds(oddsList);
@@ -199,18 +217,18 @@ namespace Scrappy2._0
                 }
                 catch (StaleElementReferenceException serex)
                 {
-                    Console.WriteLine(serex.Message);
+                    Debug.Print("------> Stale Element {0}",serex.Message);
                     //GetWebElement again.
                     matchesList = WebElements("//div[contains(@class, 'sgl-MarketFixtureDetailsLabelExpand3 gl-Market_General gl-Market_General-columnheader gl-Market_General-haslabels ')]/child::div");
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("------> ERROR: {0}", e.Message);
+                    Debug.Print("------> Error: {0}", e.Message);
                     throw;
                 }
                 finally
                 {
-                    Console.WriteLine("\nTotal Matches found: {0} \n", leagueMatchCount);
+                    Console.WriteLine("\n Total Matches found: {0} \n", leagueMatchCount);
                     RandomSleep(2130);
                     driver.Navigate().Back();
                 }
@@ -231,9 +249,9 @@ namespace Scrappy2._0
                     HomeTeamName = matchDetails[1].Trim(),
                     AwayTeamName = matchDetails[2].Trim(),
                     // B365HomeOdds = tempHomeOdds,
-                    B365HomeOdds = tempHomeOdds,
-                    B365DrawOdds = tempDrawOdds,
-                    B365AwayOdds = tempAwayOdds,
+                    B365HomeOdds = Convert.ToDouble(tempHomeOdds),
+                    B365DrawOdds = Convert.ToDouble(tempDrawOdds),
+                    B365AwayOdds = Convert.ToDouble(tempAwayOdds),
                     //B365BTTSOdds = "1.6",
                     //B365O25GoalsOdds = "2.0",
                     //SmarketsHomeOdds = "6.6",
@@ -248,9 +266,9 @@ namespace Scrappy2._0
                 //We need to retrieve the existing document from the DB and update the fields
                 var docUpdate = db.LoadRecordByRefTag<MatchesModel>("Matches", matchDetails[1].Trim() + " " + matchDetails[2].Trim());
 
-                docUpdate.B365HomeOdds = tempHomeOdds;
-                docUpdate.B365AwayOdds = tempAwayOdds;
-                docUpdate.B365DrawOdds = tempDrawOdds;
+                docUpdate.B365HomeOdds = Convert.ToDouble(tempHomeOdds);
+                docUpdate.B365AwayOdds = Convert.ToDouble(tempAwayOdds);
+                docUpdate.B365DrawOdds = Convert.ToDouble(tempDrawOdds);
 
                 db.UpsertRecordByRefTag<MatchesModel>("Matches", docUpdate, matchDetails[1].Trim() + " " + matchDetails[2].Trim());
             }
@@ -264,15 +282,7 @@ namespace Scrappy2._0
             }
         }
 
-        public static string GetOdds(string index)
-        {
-            string start = "//div[@class= 'sgl-MarketOddsExpand gl-Market_General gl-Market_General-columnheader ']/div['";
-            string middle = index; //awayT or homeT.
-            string end = "']/span";
 
-            string path = start + middle + end;
-            return path;
-        }
         //Checks to see if headerTitle(United Kingdom...UEFA Champions League etc.. is showing it's leagues. If not expanded, it returns false. If expanded true.
         public static bool IsAccessibleCheck(string _headerTitle, string _leagueTitle)
         {
@@ -288,50 +298,17 @@ namespace Scrappy2._0
                 xPath = GetHeaderTitleXpath(_headerTitle);
                 IWebElement container = AWebElement(xPath);
                 bool answer = AWebElement(xPath) != null ? true : false;
-                if (container != null)
-                {
-                    container.Click(); // opens drop down
-                    return answer;
-                }
+
+                    if (container != null)
+                    {
+                        container.Click(); // opens drop down
+                        return answer;
+                    }
 
                 return false;
             }
         }
 
-        public static string ForLeagueXpath(string _divisionTitle, string _leagueTitle)
-        {
-            string start = "//div[contains(@class, 'gl-MarketGroup_Wrapper sm-SplashMarketGroup_Container ')]//div[contains(@class, 'sm-SplashMarket_Title') and contains(text(), '";
-            string mi = _divisionTitle;
-            string dd = "')]/parent::div[contains(@class, 'sm-SplashMarket_Header sm-SplashMarket_HeaderOpen ')]/following-sibling::div/child::div/child::span[text() ='";
-            string le = _leagueTitle;
-            string end = "']";
-
-            string path = start + mi + dd + le + end;
-
-            return path;
-        }
-
-        //Returns an xPath for League Division Header Title THAT IS opened
-        public static string CheckOpenHeaderXpath(string _headerTitle)
-        {
-            string start = "//div[contains(@class, 'gl-MarketGroup_Wrapper sm-SplashMarketGroup_Container ')]//div[contains(@class, 'sm-SplashMarket_Title') and contains(text(), '";
-            string middle = _headerTitle;
-            string end = "')]/parent::div[contains(@class, 'sm-SplashMarket_HeaderOpen ')]";
-
-            string path = start + middle + end;
-            return path;
-        }
-
-        //Returns an xPath for League Division Header Title THAT IS NOT opened
-        public static string GetHeaderTitleXpath(string _headerTitle)
-        {
-            string start = "//div[contains(@class, 'gl-MarketGroup_Wrapper sm-SplashMarketGroup_Container ')]//div[contains(@class, 'sm-SplashMarket_Title') and contains(text(), '";
-            string middle = _headerTitle;
-            string end = "')]";
-
-            string path = start + middle + end;
-            return path;
-        }
         private static double MatchDateRange(IWebElement matchWebElement) //Compare match dates with current date UTC.
         {
             DateTime currentTime = DateTime.UtcNow;  //TODO verify correct time conversion is carried out for different parts of the world. What time is Bet365 showing me in Thailand vs. UK?
@@ -349,6 +326,129 @@ namespace Scrappy2._0
             {
                 return 99; //lots of formatExceptions...maybe re-code to avoid this?
             }
+        }
+        public static void CollectData()
+        {
+            List<MatchPath> directoryList = new List<MatchPath>();
+            List<MatchPath> clonedDirectory = new List<MatchPath>(); //Initialize a new list
+            
+            directoryList = MatchPath.GetXpathList();
+            clonedDirectory = directoryList; //create a copy.
+
+            Console.WriteLine("\n Collecting Data for {0} matches...", directoryList.Count());
+
+            //Create an inefficient way to travel to these pages. Humanizes the URL navigation
+            Shuffle(clonedDirectory);
+
+            //Print(clonedDirectory);
+            for (int i = 0; i < clonedDirectory.Count(); i++)
+            {
+                RandomSleep(4312);
+                //Enter into first league.
+                string divisionTitle = clonedDirectory[i].country;
+                string leagueTitle = clonedDirectory[i].league;
+                string leagueXPath = GetLeagueXpath(divisionTitle, leagueTitle); //BuildXpath for Scenario '1'
+
+                AccessLeagueElement(divisionTitle, leagueTitle); //Brings you to current list of matches for specified league.
+                //Access specific match detail, then bring back to the root page. 
+
+                RandomSleep(2312);
+                //Find Match
+
+                string xPathHome = GetMatchXpath(clonedDirectory[i].homeT); // get xPath for homeT
+                string xPathAway = GetMatchXpath(clonedDirectory[i].awayT); ; // get xPath for awayT
+                //string xPathDate = BuildPath(clonedDirectory[i].homeT, clonedDirectory[i].date, 4); //get xPath to date
+
+                IWebElement matchDetails = AWebElement(xPathHome);
+                string webHome = matchDetails.Text.Trim();
+                string webAway = AWebElement(xPathAway).Text.Trim();
+                //string webDate = AWebElement(xPathDate).Text.Trim();
+
+
+                if (webHome == clonedDirectory[i].homeT && clonedDirectory[i].awayT == webAway)
+                {
+                    Console.WriteLine("\nEntered a match!");
+                    matchDetails.Click();
+                    RandomSleep(5121);
+                    GrabData(webHome, webAway);
+                }
+
+
+            }
+        }
+
+        private static void GrabData(string HomeTeamName, string AwayTeamName)
+        {
+            List<IWebElement> elements = WebElements("//div[@class = 'gl-MarketGroupButton_Text ' and contains(text(),'Full Time Result')]/parent::div/following-sibling::div/child::div/child::div/div/span[@class= 'gl-Participant_Odds']");
+
+            Double homeOddsPath = Convert.ToDouble(elements[0].Text);
+            Double drawOddsPath = Convert.ToDouble(elements[1].Text);
+            Double awayOddsPath = Convert.ToDouble(elements[2].Text);
+
+            List<IWebElement> odds = WebElements("//div[@class = 'gl-MarketGroupButton_Text ' and contains(text(),'Goals Over/Under')]/parent::div/following-sibling::div/div/div/div/span[@class='gl-ParticipantOddsOnly_Odds']");
+            RandomSleep(2121);
+            Double overTwoFivePath = Convert.ToDouble(odds[0].Text);
+            Double btsYesPath = Convert.ToDouble(AWebElement("//div[@class = 'gl-MarketGroupButton_Text ' and contains(text(),'Both Teams to Score')]/parent::div/following-sibling::div/descendant::span[@class= 'gl-ParticipantBorderless_Odds'][1]").Text);
+
+
+            // Add the match the DB
+            MongoCRUD db = new MongoCRUD("MBEdge");
+            //First Check if the match already exists. If it exists retrieve the object. If it doesn't, make a new one.
+
+            if (db.CountRecordsByRefTag<long>("Matches", HomeTeamName + " " + AwayTeamName) < 1)
+            {
+
+                MatchesModel match = new MatchesModel
+                {
+                    RefTag = HomeTeamName + " " + AwayTeamName,
+                    HomeTeamName = HomeTeamName,
+                    AwayTeamName = AwayTeamName,
+                    // B365HomeOdds = tempHomeOdds,
+                    B365HomeOdds = homeOddsPath,
+                    B365DrawOdds = drawOddsPath,
+                    B365AwayOdds = awayOddsPath,
+                    B365BTTSOdds = btsYesPath,
+                    B365O25GoalsOdds = overTwoFivePath,
+                    //SmarketsHomeOdds = "6.6",
+                    //SmarketsAwayOdds = "2.1",
+                    //League = league,
+                    //StartDateTime = new DateTime(2020, 09, 28, 19, 0, 0, DateTimeKind.Utc)
+
+                };
+
+                //Get Occurrence of 2up based on game odds
+                MatchOccurence.GetOccurrences(match);
+
+                db.InsertRecord("Matches", match);
+
+            }
+            else
+            {
+                //We need to retrieve the existing document from the DB and update the fields
+                var docUpdate = db.LoadRecordByRefTag<MatchesModel>("Matches", HomeTeamName + " " + AwayTeamName);
+                //
+
+                docUpdate.B365HomeOdds = homeOddsPath;
+                docUpdate.B365AwayOdds = awayOddsPath;
+                docUpdate.B365DrawOdds = drawOddsPath;
+                docUpdate.B365BTTSOdds = btsYesPath;
+                docUpdate.B365O25GoalsOdds = overTwoFivePath;
+
+                db.UpsertRecordByRefTag<MatchesModel>("Matches", docUpdate, HomeTeamName + " " + AwayTeamName);
+
+                //
+            }
+
+
+            Console.WriteLine("Over2.5: {0} BTS(yes): {1} Home: {2} Draw: {3} Away: {4} ", overTwoFivePath, btsYesPath, homeOddsPath, drawOddsPath, awayOddsPath);
+            RandomSleep(3130);
+            IWebElement button = AWebElement("//div[@class= 'sph-BreadcrumbTrail_Breadcrumb ']");
+            button.Click();
+            //GO BACK TO ROOT URL
+            RandomSleep(2130);
+            IWebElement button2 = AWebElement("//div[@class= 'sph-BreadcrumbTrail_Breadcrumb ']");
+            button2.Click();
+
         }
         public static void InitiateList()
         {

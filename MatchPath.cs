@@ -15,7 +15,7 @@ namespace Scrappy2._0
         public string awayT { get; set; }
         public bool scraped { get; set; }
 
-        public static List<MatchPath> PathList { get; set; }
+        public static List<MatchPath> PathList { get; set; } // Used to find the specific match you want to open with Selenium
 
         public MatchPath(string c, string l, string mT, string d, string h, string a)
         {
