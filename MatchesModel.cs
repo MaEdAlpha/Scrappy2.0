@@ -15,14 +15,16 @@ namespace Scrappy2._0
             public string AwayTeamName { get; set; }
             public string SmarketsHomeOdds { get; set; }
             public string SmarketsAwayOdds { get; set; }
-            public string B365HomeOdds { get; set; }
-            public string B365DrawOdds { get; set; }
-            public string B365AwayOdds { get; set; }
-            public string B365BTTSOdds { get; set; }
-            public string B365O25GoalsOdds { get; set; }
+            public double B365HomeOdds { get; set; }
+            public double B365DrawOdds { get; set; }
+            public double B365AwayOdds { get; set; }
+            public double B365BTTSOdds { get; set; }
+            public double B365O25GoalsOdds { get; set; }
             public DateTime StartDateTime { get; set; }
             public string League { get; set; }
+            public double OccurrenceHome { get; set; }
+            public double OccurrenceAway { get; set; }
 
-        }
+    }
    
 }

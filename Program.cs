@@ -9,6 +9,7 @@ namespace Scrappy2._0
         public static bool settingUp = true;
         public static bool scraping = true;
         public static bool bttsEnabled = false;
+        public static bool pathListPopulated = false;
         //public static MongoClient clientDb;
 
         public static void Main()
@@ -20,11 +21,13 @@ namespace Scrappy2._0
 
             while (settingUp) { ScrapeSelector.HandleSelection(valueOf.SelectedSite()); }
 
-            while (scraping)
-            {
-                Bet365.Scrape();
-                Bet365.DisplaySummary();
-
+            while (scraping) {
+                    Bet365.Scrape();
+                    pathListPopulated = true;
+                    Bet365.DisplaySummary();
+                while(bttsEnabled && pathListPopulated) {
+                    Bet365.CollectData();
+                }
             }
         }
     }
