@@ -32,16 +32,16 @@ namespace Scrappy2._0
             smarketsUrlDict.Add("England Championship", "https://smarkets.com/listing/sport/football/england-championship");
             smarketsUrlDict.Add("England League 1", "https://smarkets.com/listing/sport/football/england-league-1");
             smarketsUrlDict.Add("England League 2", "https://smarkets.com/listing/sport/football/england-league-2");
-            smarketsUrlDict.Add("England FA Cup", "United Kingdom");
+            //smarketsUrlDict.Add("England FA Cup", "United Kingdom");
             smarketsUrlDict.Add("England EFL Cup", "https://smarkets.com/listing/sport/football/england-league-cup");
-            smarketsUrlDict.Add("Scottish Premiership", "United Kingdom");
+            //smarketsUrlDict.Add("Scottish Premiership", "United Kingdom");
             smarketsUrlDict.Add("Spanish Primera Liga", "https://smarkets.com/listing/sport/football/spain-la-liga");
-            smarketsUrlDict.Add("Spain Primera Liga", "Spain");
+            //smarketsUrlDict.Add("Spain Primera Liga", "Spain");
             smarketsUrlDict.Add("Germany Bundesliga I", "https://smarkets.com/listing/sport/football/germany-bundesliga");
             smarketsUrlDict.Add("Italy Serie A", "https://smarkets.com/listing/sport/football/italy-serie-a");
             smarketsUrlDict.Add("France Ligue 1", "https://smarkets.com/listing/sport/football/france-ligue-1");
-            smarketsUrlDict.Add("AFC Champions League", "Relevant?");
-            smarketsUrlDict.Add("Copa Sudamericana", "Relevant?");
+            //smarketsUrlDict.Add("AFC Champions League", "Relevant?");
+            //smarketsUrlDict.Add("Copa Sudamericana", "Relevant?");
         }
 
         public static void ScrapeSelection()
