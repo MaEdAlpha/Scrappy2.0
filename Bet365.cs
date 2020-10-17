@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using MongoDB.Driver.Core.Events;
@@ -139,12 +140,14 @@ namespace Scrappy2._0
         public static void GetLeagueData(int DATERANGE, string leagueTitle, string divisionTitle)
         {
             {
-                string tempDate = "default"; //store date here to write to list later
+                string tempDate = ""; //store date here to write to list later
+                string finalDate = "";
                 int dayRange = DATERANGE; // what maximum range of data you want to grab
                 int leagueMatchCount = 0;
                 string tempHomeOdds;
                 string tempDrawOdds;
                 string tempAwayOdds;
+                string matchTime;
                 pathCount = 0;
 
                 Console.Write("\nBuilding Directory {0}", leagueTitle);
@@ -158,13 +161,14 @@ namespace Scrappy2._0
                     foreach (IWebElement matchWebElement in matchesList)
                     {
                         //Gets IWebElement within specified day range.
-                        if (MatchDateRange(matchWebElement) <= dayRange && (matchWebElement.Text.StartsWith("Mon") || matchWebElement.Text.StartsWith("Tue") || matchWebElement.Text.StartsWith("Wed") || matchWebElement.Text.StartsWith("Thu") || matchWebElement.Text.StartsWith("Fri") || matchWebElement.Text.StartsWith("Sat") || matchWebElement.Text.StartsWith("Sun")))
+                        if (MatchDateRange(matchWebElement) <= dayRange && (matchWebElement.Text.StartsWith("Mon") || matchWebElement.Text.StartsWith("Tue") || matchWebElement.Text.StartsWith("Wed") || matchWebElement.Text.StartsWith("Thu") || matchWebElement.Text.StartsWith("Fri") || matchWebElement.Text.StartsWith("Sat") || matchWebElement.Text.StartsWith("Sun")) )
                         {
-                            //Console.WriteLine("\n Adding matches for date: {0}", matchWebElement.Text);
+                            
                             tempDate = matchWebElement.Text;
+
                         }
                         //Breaks from looop when it finds date range out of spec
-                        else if (MatchDateRange(matchWebElement) > dayRange && (matchWebElement.Text.StartsWith("Mon") || matchWebElement.Text.StartsWith("Tue") || matchWebElement.Text.StartsWith("Wed") || matchWebElement.Text.StartsWith("Thu") || matchWebElement.Text.StartsWith("Fri") || matchWebElement.Text.StartsWith("Sat") || matchWebElement.Text.StartsWith("Sun")))
+                        else if (MatchDateRange(matchWebElement) > dayRange && (matchWebElement.Text.StartsWith("Mon") || matchWebElement.Text.StartsWith("Tue") || matchWebElement.Text.StartsWith("Wed") || matchWebElement.Text.StartsWith("Thu") || matchWebElement.Text.StartsWith("Fri") || matchWebElement.Text.StartsWith("Sat") || matchWebElement.Text.StartsWith("Sun"))  )
                         {
                             break;
                         }
@@ -175,9 +179,13 @@ namespace Scrappy2._0
                             string item = matchWebElement.Text;
                             string[] matchDetails = matchWebElement.Text.Split("\r\n");
 
-                            Console.WriteLine("\n---Date: {3} Time: {0} Home: {1} Away: {2}", matchDetails[0], matchDetails[1], matchDetails[2], tempDate);
+                            finalDate = ConverToDateTime(tempDate, matchDetails[0]).ToString("MM/dd/yyyy HH:mm:ss");
+                            matchTime = ConverToDateTime(tempDate, matchDetails[0]).ToString("HH:mm");
 
-                            MatchPath package = new MatchPath(divisionTitle, leagueTitle, matchDetails[0].Trim(), tempDate, matchDetails[1].Trim(), matchDetails[2].Trim());
+
+                            Console.WriteLine("\n---Date: {3} Time: {0} Home: {1} Away: {2}", matchTime, matchDetails[1], matchDetails[2], finalDate);
+
+                            MatchPath package = new MatchPath(divisionTitle, leagueTitle, matchTime, finalDate, matchDetails[1].Trim(), matchDetails[2].Trim());
 
                             string index = pathCount.ToString();
                             string forOdds = GetOddsXpath(index);
@@ -191,9 +199,9 @@ namespace Scrappy2._0
                             tempDrawOdds = oddsList[((oddsList.Count / 3) - 1) + pathCount].Text;
                             tempAwayOdds = oddsList[((oddsList.Count / 3 * 2) - 1) + pathCount].Text;
 
-                            Console.WriteLine("Date: {0}\n Country: {1} \n League: {2} \n mTime: {3}\n home:{4}\n away:{5} \nODDS H/D/A: {6}/{7}/{8}", tempDate, divisionTitle, leagueTitle, matchDetails[0].Trim(), matchDetails[1].Trim(), matchDetails[2].Trim(), tempHomeOdds, tempDrawOdds, tempAwayOdds);
+                            Console.WriteLine("Date: {0}\n Country: {1} \n League: {2} \n mTime: {3}\n home:{4}\n away:{5} \nODDS H/D/A: {6}/{7}/{8}", finalDate, divisionTitle, leagueTitle, matchTime, matchDetails[1].Trim(), matchDetails[2].Trim(), tempHomeOdds, tempDrawOdds, tempAwayOdds);
 
-                            //WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails);
+                            WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails);
 
                             MatchPath matchItem = package;
                             MatchPath.SaveXpath(matchItem);
@@ -307,6 +315,7 @@ namespace Scrappy2._0
             try
             {
                 DateTime dateconv = DateTime.Parse(date);
+
                 double days = (dateconv - currentTime).TotalDays;
                 return days;
             }
@@ -314,6 +323,35 @@ namespace Scrappy2._0
             {
                 return 99; //lots of formatExceptions...maybe re-code to avoid this?
             }
+        }
+        private static DateTime ConverToDateTime(string dateString, string hoursMinutes)
+        {
+            //string[] splitTime = hoursMinutes.Split(":");
+            string date;
+            string dayInt = dateString.Substring(4, 2);
+            string month = dateString.Substring(7, 3);
+            DateTime dateconv = DateTime.Now;
+            //string hours = splitTime[0];
+            //string minutes = splitTime[1];
+            if (month != "Jan")
+            {
+                date = month + "" + dayInt + ", 2020 " + hoursMinutes.Trim() + ":00";
+            } else
+            {
+                date = month + "" + dayInt + ", 2021 " + hoursMinutes.Trim() + ":00";
+            }
+            try
+            {
+                dateconv = DateTime.Parse(date).ToUniversalTime();
+
+                return dateconv;
+            }
+            catch (Exception)
+            {
+                Debug.Write(date);
+            }
+            Console.WriteLine("WRONG DATETIME");
+            return dateconv;
         }
         public static void CollectData()
         {
