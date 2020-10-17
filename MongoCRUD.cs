@@ -14,7 +14,13 @@ namespace Scrappy2._0
         //Atlas code
         public MongoCRUD(string database)
         {
-            var client = new MongoClient();
+            //COMPASS
+            //  var client = new MongoClient();
+            //  db = client.GetDatabase(database);
+
+            //ATLAS
+            var connectionString = "mongodb+srv://Dan:x6RTQn5bD79QLjkJ@cluster0.uljb3.gcp.mongodb.net/MBEdge?retryWrites=true&w=majority";
+            var client = new MongoClient(connectionString);
             db = client.GetDatabase(database);
         }
 
