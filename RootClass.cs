@@ -67,7 +67,7 @@ namespace Scrappy2._0
         public static bool IsValidFormat(string str)
         {
             List<string> items = str.Split(',').ToList();
-            int maxValue = Bet365.leagueCountry.Count();
+            int maxValue = Bet365.leagueDivisionDict.Count();
 
             foreach (string item in items)
             {
@@ -86,6 +86,28 @@ namespace Scrappy2._0
                 }
             }
             return true;
+        }
+        public static Dictionary<string, string> CreateCustomLeagueList(string _userInput, Dictionary<string,string> siteList)
+        {
+            Dictionary<string, string> tempList = new Dictionary<string, string>();
+            int[] selectedLeagues = Array.ConvertAll(_userInput.Split(','), int.Parse); // convert userInput into an array of numbers.
+
+            foreach (int item in selectedLeagues)
+            {
+                tempList.Add(siteList.ElementAt(item).Key, siteList.ElementAt(item).Value);
+            }
+            return tempList;
+        }
+        //Returns all leagues in proper string format to add to Dictionary list to be used for scraping
+        public static string ReturnEveryLeague(Dictionary<string, string> dictList)
+        {
+            int count = dictList.Count;
+            string chain = "";
+            for (int j = 0; j < count; j++)
+            {
+                chain = chain + j + ",";
+            }         
+            return chain.Remove(chain.Length - 1);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Scrappy2._0
 {
     class Bet365 : XpathDirectory
     {
-        public static Dictionary<string, string> leagueCountry = new Dictionary<string, string>();
+        public static Dictionary<string, string> leagueDivisionDict = new Dictionary<string, string>();
         public static Dictionary<string, string> customList = new Dictionary<string, string>();
         private static List<string> countries = new List<string>();
         private static int masterCount;
@@ -49,23 +49,11 @@ namespace Scrappy2._0
 
             if (userInput != "all")
             {
-                CreateCustomLeagueList(userInput);
+               customList = CreateCustomLeagueList(userInput, leagueDivisionDict);
             }
             else if (userInput == "all")
             {
-                userInput = "0,1,2,3,4,5,6,7,8,9,10,11,12"; //make this code adaptable
-                CreateCustomLeagueList(userInput);
-            }
-
-        }
-
-        public static void CreateCustomLeagueList(string input)
-        {
-            int[] selectedLeagues = Array.ConvertAll(input.Split(','), int.Parse); // convert userInput into an array of numbers.
-
-            foreach (int item in selectedLeagues)
-            {
-                customList.Add(leagueCountry.ElementAt(item).Key, leagueCountry.ElementAt(item).Value);
+                customList = CreateCustomLeagueList( ReturnEveryLeague(leagueDivisionDict), leagueDivisionDict);
             }
         }
 
@@ -73,7 +61,7 @@ namespace Scrappy2._0
         {
             int i = 0;
 
-            foreach (KeyValuePair<string, string> league in leagueCountry)
+            foreach (KeyValuePair<string, string> league in leagueDivisionDict)
             {
                 Console.WriteLine("[{0}] : {1} ", i, league.Key);
                 i++;
@@ -84,7 +72,7 @@ namespace Scrappy2._0
         {
             cycleCount = 0;
             //Take first item in list and see if country's class element is open. 
-            Dictionary<string, string> cycleList = customList.Count == 0 ? leagueCountry : customList;
+            Dictionary<string, string> cycleList = customList.Count == 0 ? leagueDivisionDict : customList;
 
             cycleList = cycleList.ShuffleDictionary();
 
@@ -452,23 +440,23 @@ namespace Scrappy2._0
         }
         public static void InitiateList()
         {
-            leagueCountry.Add("UEFA Champions League", "UEFA Competitions");
-            leagueCountry.Add("UEFA Europa League", "UEFA Competitions");
-            leagueCountry.Add("Scotland Premiership", "United Kingdom");
-            leagueCountry.Add("England Premier League", "United Kingdom");
-            leagueCountry.Add("England Championship", "United Kingdom");
-            leagueCountry.Add("England League 1", "United Kingdom");
-            leagueCountry.Add("England League 2", "United Kingdom");
-            leagueCountry.Add("England FA Cup", "United Kingdom");
-            //leagueCountry.Add("England EFL Cup", "United Kingdom");
-            leagueCountry.Add("Scottish Premiership", "United Kingdom");
-            //leagueCountry.Add("Spanish Primera Liga", "Spain");
-            leagueCountry.Add("Spain Primera Liga", "Spain");
-            leagueCountry.Add("Germany Bundesliga I", "Germany");
-            leagueCountry.Add("Italy Serie A", "Italy");
-            leagueCountry.Add("France Ligue 1", "France");
-            //leagueCountry.Add("AFC Champions League", "Relevant?");
-            //leagueCountry.Add("Copa Sudamericana", "Relevant?");
+            leagueDivisionDict.Add("UEFA Champions League", "UEFA Competitions");
+            leagueDivisionDict.Add("UEFA Europa League", "UEFA Competitions");
+            leagueDivisionDict.Add("Scotland Premiership", "United Kingdom");
+            leagueDivisionDict.Add("England Premier League", "United Kingdom");
+            leagueDivisionDict.Add("England Championship", "United Kingdom");
+            leagueDivisionDict.Add("England League 1", "United Kingdom");
+            leagueDivisionDict.Add("England League 2", "United Kingdom");
+            leagueDivisionDict.Add("England FA Cup", "United Kingdom");
+            //leagueDivisionDict.Add("England EFL Cup", "United Kingdom");
+            leagueDivisionDict.Add("Scottish Premiership", "United Kingdom");
+            //leagueDivisionDict.Add("Spanish Primera Liga", "Spain");
+            leagueDivisionDict.Add("Spain Primera Liga", "Spain");
+            leagueDivisionDict.Add("Germany Bundesliga I", "Germany");
+            leagueDivisionDict.Add("Italy Serie A", "Italy");
+            leagueDivisionDict.Add("France Ligue 1", "France");
+            //leagueDivisionDict.Add("AFC Champions League", "Relevant?");
+            //leagueDivisionDict.Add("Copa Sudamericana", "Relevant?");
 
             //Countries for initial startup
             countries.Add("Full Time Result – Enhanced Prices");
