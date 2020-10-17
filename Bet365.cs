@@ -26,6 +26,16 @@ namespace Scrappy2._0
         {
             bool validate;
             string userInput;
+            string bothToScoreSelected;
+
+            do
+            {
+                Console.WriteLine("Scrape BTTS, O2.5? (Y/N)");
+                string optionSelected = Console.ReadLine();
+                bothToScoreSelected = optionSelected.ToLower();
+                validate = bothToScoreSelected == "y" ? true : bothToScoreSelected == "n" ? true : ThrowMessage();
+                Program.bttsEnabled = bothToScoreSelected == "y" ? true : false;              
+            } while (!validate);
 
             Console.WriteLine("Select Leagues you want to scrape");
             DisplayLeagues();
@@ -43,7 +53,7 @@ namespace Scrappy2._0
             }
             else if (userInput == "all")
             {
-                userInput = "0,1,2,3,4,5,6,7,8,9,10,11,12";
+                userInput = "0,1,2,3,4,5,6,7,8,9,10,11,12"; //make this code adaptable
                 CreateCustomLeagueList(userInput);
             }
 
@@ -350,6 +360,77 @@ namespace Scrappy2._0
                 return 99; //lots of formatExceptions...maybe re-code to avoid this?
             }
         }
+        //static void CollectData()
+        //{
+        //    List<MatchPath> directoryList = new List<MatchPath>();
+        //    List<MatchPath> clonedDirectory = new List<MatchPath>(); //Initialize a new list
+        //    directoryList = MatchPath.GetXpathList();
+        //    Console.WriteLine("\n Collecting Data for {0} matches...", directoryList.Count());
+        //    clonedDirectory = directoryList; //create a copy.
+
+        //    //Create an inefficient way to travel to these pages. Humanizes the URL navigation
+        //    Shuffle(clonedDirectory);
+
+        //    //Print(clonedDirectory);
+        //    for (int i = 0; i < clonedDirectory.Count(); i++)
+        //    {
+        //        RandomSleep(4312);
+        //        //Enter into first league.
+        //        if (ContainerIsClosed(clonedDirectory[i].country) && clonedDirectory[i].country != "United Kingdom")
+        //        {
+        //            ExposeLeagues(clonedDirectory[i].country);
+        //        }
+
+        //        string xPath = BuildPath(clonedDirectory[i].country.Trim(), clonedDirectory[i].league.Trim(), 2); // build path for league and country. 
+        //        RandomSleep(2312);
+        //        IWebElement elm = AWebElement(xPath); // open xPath. 
+
+        //        elm.Click();
+        //        RandomSleep(4312);
+        //        //Find Match
+
+        //        string xPathHome = BuildPath(clonedDirectory[i].homeT, "empty", 3); // get xPath for homeT
+        //        string xPathAway = BuildPath(clonedDirectory[i].awayT, "empty", 3); // get xPath for awayT
+        //        //string xPathDate = BuildPath(clonedDirectory[i].homeT, clonedDirectory[i].date, 4); //get xPath to date
+
+        //        IWebElement clickThis = AWebElement(xPathHome);
+        //        string webHome = clickThis.Text.Trim();
+        //        string webAway = AWebElement(xPathAway).Text.Trim();
+        //        //string webDate = AWebElement(xPathDate).Text.Trim();
+
+        //        if (webHome == clonedDirectory[i].homeT && clonedDirectory[i].awayT == webAway)
+        //        {
+        //            Console.WriteLine("\nEntered a match!");
+        //            clickThis.Click();
+        //            RandomSleep(5121);
+        //            GrabData(webHome, webAway);
+        //        }
+
+        //        // EDGE CASE: This process works, BUT if a match is occuring with the same teams same times on a different day, it may cause a bug. Moreso when you increase the days you want to search. Can we ignore this?
+        //        //Xpath build reference
+        //        //div[contains(@class,'rcl-ParticipantFixtureDetails_TeamNames')]
+        //        //div[contains(@class,'rcl-ParticipantFixtureDetails_TeamNames')]/child::div[@class="rcl-ParticipantFixtureDetails_TeamWrapper "]/child::div[contains(text(),'Chelsea')]
+
+        //        /*
+        //        //Code snippet: finding home and away team xPath Container. Use this in Boolean style if statement.
+        //        div[contains(@class,'rcl-ParticipantFixtureDetails_TeamNames')]/child::div[@class="rcl-ParticipantFixtureDetails_TeamWrapper "]/child::div[contains(text(),'
+        //        clonDirectory[i].homeT   && cloneDirectory[i].awayT
+        //           ')]
+        //         Code Snipppet:Referencing the date to make sure you have the right team container
+        
+        //        //div[contains(@class,'rcl-ParticipantFixtureDetails_TeamNames')]/child::div[@class="rcl-ParticipantFixtureDetails_TeamWrapper "]/child::div[contains(text(),'
+                
+        //        Chelsea <- cloneDirectory[i].homeT
+                
+        //        ')]/parent::div/parent::div/parent::div/parent::div/parent::div/preceding-sibling::div[ contains(text(), '
+                
+        //        Sun 20 Sep <- cloneDirectory[i].date
+                    
+        //            ')]
+        //         //div[contains(@class,'rcl-ParticipantFixtureDetails_TeamNames')]/child::div[@class="rcl-ParticipantFixtureDetails_TeamWrapper "]/child::div[contains(text(),'Chelsea')]/parent::div/parent::div/parent::div/parent::div/parent::div/preceding-sibling::div[ contains(text(), 'Sun 20 Sep')]
+        //        */
+        //    }
+        //}
         public static void InitiateList()
         {
             leagueCountry.Add("UEFA Champions League", "UEFA Competitions");

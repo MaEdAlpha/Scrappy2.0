@@ -59,13 +59,16 @@ namespace Scrappy2._0
             driver.Quit();
         }
 
-
+        public static bool ThrowMessage()
+        {
+            Console.WriteLine("Enter a single character 'y' or 'n' only");
+            return false;
+        }
         public static bool IsValidFormat(string str)
         {
             List<string> items = str.Split(',').ToList();
             int maxValue = Bet365.leagueCountry.Count();
 
-            Console.WriteLine("Count: {0}", maxValue);
             foreach (string item in items)
             {
                 int selectedValue;
