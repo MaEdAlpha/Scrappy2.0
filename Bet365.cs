@@ -95,12 +95,18 @@ namespace Scrappy2._0
 
                 string divisionTitle = item.Value;
                 string leagueTitle = item.Key;
-                AccessLeagueElement(divisionTitle, leagueTitle); // Finds an IWebElement for a specific league, then clicks on that element to expose all matches. 
-                GetLeagueData(DATERANGE, leagueTitle, divisionTitle);
+                bool leagueExists = AccessLeagueElement(divisionTitle, leagueTitle); // Finds an IWebElement for a specific league, then clicks on that element to expose all matches. 
+                
+                if(leagueExists == true)
+                {
+                    GetLeagueData(DATERANGE, leagueTitle, divisionTitle); 
+                } else {
+                    Console.WriteLine("INACTIVE: {1}, {0}", divisionTitle, leagueTitle);
+                }
             }
         }
 
-        private static void AccessLeagueElement(string divisionTitle, string leagueTitle)
+        private static bool AccessLeagueElement(string divisionTitle, string leagueTitle)
         {
             string leagueXPath = GetLeagueXpath(divisionTitle, leagueTitle);                //Acquire Xpath to get specific leagues.
             IWebElement leagueIWebElement = AWebElement(leagueXPath);
@@ -110,13 +116,13 @@ namespace Scrappy2._0
                 //Access the league.
                 if (leagueIWebElement != null)
                 {
-                    ClickLeagueElement(divisionTitle, leagueTitle);                         //Method will bring you to list of Matches for specified league.   
-                }
-                else
-                {
-                    Console.WriteLine("INACTIVE: {1}, {0}", divisionTitle, leagueTitle);
-                }
+                    ClickLeagueElement(divisionTitle, leagueTitle);     //Method will bring you to list of Matches for specified league.   
+                    return true;
+                } else {
+                    return false;
+                }               
             }
+            return false;
         }
 
         public static void ClickLeagueElement(string _divisionTitle, string _leagueTitle)
@@ -130,10 +136,8 @@ namespace Scrappy2._0
                 leagueIWebElement = AWebElement(leagueXPath);
                     if (leagueIWebElement == null)
                     {
-                        Console.WriteLine("Did not find this, skipping {0} {1}", _divisionTitle, _leagueTitle);
-                    }
-                    else
-                    {
+                        Console.WriteLine("League xPath not found. Skipping {0} {1}", _divisionTitle, _leagueTitle);
+                    } else {
                         leagueIWebElement.Click();
                     }
             }
@@ -224,7 +228,7 @@ namespace Scrappy2._0
                 }
                 finally
                 {
-                    Console.WriteLine("\nTotal Matches found: {0} \n", leagueMatchCount);
+                    Console.WriteLine("\n Total Matches found: {0} \n", leagueMatchCount);
                     RandomSleep(2130);
                     driver.Navigate().Back();
                 }
