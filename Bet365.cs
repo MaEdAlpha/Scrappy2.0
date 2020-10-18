@@ -160,15 +160,16 @@ namespace Scrappy2._0
                 {
                     foreach (IWebElement matchWebElement in matchesList)
                     {
+
                         //Gets IWebElement within specified day range.
-                        if (MatchDateRange(matchWebElement) <= dayRange && (matchWebElement.Text.StartsWith("Mon") || matchWebElement.Text.StartsWith("Tue") || matchWebElement.Text.StartsWith("Wed") || matchWebElement.Text.StartsWith("Thu") || matchWebElement.Text.StartsWith("Fri") || matchWebElement.Text.StartsWith("Sat") || matchWebElement.Text.StartsWith("Sun")) )
+                        if (MatchDateRange(matchWebElement) <= dayRange && (matchWebElement.Text.StartsWith("Mon") || matchWebElement.Text.StartsWith("Tue") || matchWebElement.Text.StartsWith("Wed") || matchWebElement.Text.StartsWith("Thu") || matchWebElement.Text.StartsWith("Fri") || matchWebElement.Text.StartsWith("Sat") || matchWebElement.Text.StartsWith("Sun")))
                         {
-                            
+
                             tempDate = matchWebElement.Text;
 
                         }
                         //Breaks from looop when it finds date range out of spec
-                        else if (MatchDateRange(matchWebElement) > dayRange && (matchWebElement.Text.StartsWith("Mon") || matchWebElement.Text.StartsWith("Tue") || matchWebElement.Text.StartsWith("Wed") || matchWebElement.Text.StartsWith("Thu") || matchWebElement.Text.StartsWith("Fri") || matchWebElement.Text.StartsWith("Sat") || matchWebElement.Text.StartsWith("Sun"))  )
+                        else if (MatchDateRange(matchWebElement) > dayRange && (matchWebElement.Text.StartsWith("Mon") || matchWebElement.Text.StartsWith("Tue") || matchWebElement.Text.StartsWith("Wed") || matchWebElement.Text.StartsWith("Thu") || matchWebElement.Text.StartsWith("Fri") || matchWebElement.Text.StartsWith("Sat") || matchWebElement.Text.StartsWith("Sun")))
                         {
                             break;
                         }
@@ -176,38 +177,42 @@ namespace Scrappy2._0
                         else if (matchWebElement.Text.Contains(":"))
                         {
                             pathCount++;
-                            string item = matchWebElement.Text;
-                            string[] matchDetails = matchWebElement.Text.Split("\r\n");
 
-                            finalDate = ConverToDateTime(tempDate, matchDetails[0]).ToString("MM/dd/yyyy HH:mm:ss");
-                            matchTime = ConverToDateTime(tempDate, matchDetails[0]).ToString("HH:mm");
+                            if (ScrapeThisMatch(pathCount))
+                            {
+                                string item = matchWebElement.Text;
+                                string[] matchDetails = matchWebElement.Text.Split("\r\n");
+
+                                finalDate = ConverToDateTime(tempDate, matchDetails[0]).ToString("MM/dd/yyyy HH:mm:ss");
+                                matchTime = ConverToDateTime(tempDate, matchDetails[0]).ToString("HH:mm");
 
 
-                            Console.WriteLine("\n---Date: {3} Time: {0} Home: {1} Away: {2}", matchTime, matchDetails[1], matchDetails[2], finalDate);
+                                Console.WriteLine("\n---Date: {3} Time: {0} Home: {1} Away: {2}", matchTime, matchDetails[1], matchDetails[2], finalDate);
 
-                            MatchPath package = new MatchPath(divisionTitle, leagueTitle, matchTime, finalDate, matchDetails[1].Trim(), matchDetails[2].Trim());
+                                MatchPath package = new MatchPath(divisionTitle, leagueTitle, matchTime, finalDate, matchDetails[1].Trim(), matchDetails[2].Trim());
 
-                            string index = pathCount.ToString();
-                            string forOdds = GetOddsXpath(index);
-                            List<IWebElement> oddsList = WebElements(forOdds);
+                                string index = pathCount.ToString();
+                                string forOdds = GetOddsXpath(index);
+                                List<IWebElement> oddsList = WebElements(forOdds);
 
-                            //DebugPrintOdds(oddsList);
+                                //DebugPrintOdds(oddsList);
 
-                            tmsCount++;
+                                tmsCount++;
 
-                            tempHomeOdds = oddsList[pathCount - 1].Text;
-                            tempDrawOdds = oddsList[((oddsList.Count / 3) - 1) + pathCount].Text;
-                            tempAwayOdds = oddsList[((oddsList.Count / 3 * 2) - 1) + pathCount].Text;
+                                tempHomeOdds = oddsList[pathCount - 1].Text;
+                                tempDrawOdds = oddsList[((oddsList.Count / 3) - 1) + pathCount].Text;
+                                tempAwayOdds = oddsList[((oddsList.Count / 3 * 2) - 1) + pathCount].Text;
 
-                            Console.WriteLine("Date: {0}\n Country: {1} \n League: {2} \n mTime: {3}\n home:{4}\n away:{5} \nODDS H/D/A: {6}/{7}/{8}", finalDate, divisionTitle, leagueTitle, matchTime, matchDetails[1].Trim(), matchDetails[2].Trim(), tempHomeOdds, tempDrawOdds, tempAwayOdds);
+                                Console.WriteLine("Date: {0}\n Country: {1} \n League: {2} \n mTime: {3}\n home:{4}\n away:{5} \nODDS H/D/A: {6}/{7}/{8}", finalDate, divisionTitle, leagueTitle, matchTime, matchDetails[1].Trim(), matchDetails[2].Trim(), tempHomeOdds, tempDrawOdds, tempAwayOdds);
 
-                            WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
+                                WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
 
-                            MatchPath matchItem = package;
-                            MatchPath.SaveXpath(matchItem);
+                                MatchPath matchItem = package;
+                                MatchPath.SaveXpath(matchItem);
 
-                            leagueMatchCount++;
-                            masterCount++;
+                                leagueMatchCount++;
+                                masterCount++;
+                            }
                         }
                     }
                 }
@@ -373,36 +378,71 @@ namespace Scrappy2._0
                 //Enter into first league.
                 string divisionTitle = clonedDirectory[i].country;
                 string leagueTitle = clonedDirectory[i].league;
-                string leagueXPath = GetLeagueXpath(divisionTitle, leagueTitle); //BuildXpath for Scenario '1'
+
+                string homeTeam = clonedDirectory[i].homeT;
+                string awayTeam = clonedDirectory[i].awayT;
 
                 AccessLeagueElement(divisionTitle, leagueTitle); //Brings you to current list of matches for specified league.
                 //Access specific match detail, then bring back to the root page. 
 
-                RandomSleep(2312);
-                //Find Match
-
-                string xPathHome = GetMatchXpath(clonedDirectory[i].homeT); // get xPath for homeT
-                string xPathAway = GetMatchXpath(clonedDirectory[i].awayT); ; // get xPath for awayT
-                //string xPathDate = BuildPath(clonedDirectory[i].homeT, clonedDirectory[i].date, 4); //get xPath to date
-
-                IWebElement matchDetails = AWebElement(xPathHome);
-                string webHome = matchDetails.Text.Trim();
-                string webAway = AWebElement(xPathAway).Text.Trim();
-                //string webDate = AWebElement(xPathDate).Text.Trim();
-
-
-                if (webHome == clonedDirectory[i].homeT && clonedDirectory[i].awayT == webAway)
+                if(InPlay(homeTeam, awayTeam))
                 {
-                    Console.WriteLine("\nEntered a match!");
-                    matchDetails.Click();
-                    RandomSleep(5121);
-                    GrabData(webHome, webAway);
+                    GoBack();
+                } else {
+                    RandomSleep(2312);
+                    //Find Match
+
+                    string xPathHome = GetMatchXpath(homeTeam); // get xPath for homeT
+                    string xPathAway = GetMatchXpath(awayTeam); ; // get xPath for awayT
+
+
+                    IWebElement matchDetails = AWebElement(xPathHome);
+                    string webHome = matchDetails.Text.Trim();
+                    string webAway = AWebElement(xPathAway).Text.Trim();
+                    //string webDate = AWebElement(xPathDate).Text.Trim();
+
+
+                    if (webHome == homeTeam && awayTeam == webAway)
+                    {
+                        Console.WriteLine("\nEntered a match!");
+                        matchDetails.Click();
+                        RandomSleep(5121);
+                        GrabData(webHome, webAway);
+                    }
+                    else
+                    {
+                        GoBack();
+                    }
                 }
+              
 
 
             }
         }
 
+        private static void GoBack()
+        {
+            IWebElement button = AWebElement("//div[@class= 'sph-BreadcrumbTrail_Breadcrumb ']");
+            button.Click();
+        }
+
+        private static bool InPlay(string home, string away)
+        {
+
+            string homeCheck = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), '"+ home.Trim() +"')]";
+            string awayCheck = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][2]/div[contains(text(), '" + away.Trim() + "')]";
+            bool homeMatch = AWebElement(homeCheck) != null ? true : false;
+            bool awayMatch = AWebElement(awayCheck) != null ? true : false;
+
+            if(homeMatch && awayMatch)
+            {
+                string inPlayCheck = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), " + home.Trim() + ")]/parent::div/parent::div/parent::div/parent::div/div/div[contains(@class,'Clock')]/div[contains(@class,'ClockInPlay_Extra')]";
+                bool isInPlay = AWebElement(inPlayCheck) != null ? true : false;
+                return isInPlay;
+            }
+            Console.WriteLine("In InPlay Method...something probably went wrong?H{0},A{1}", home, away);
+            return true;
+        }
         private static void GrabData(string HomeTeamName, string AwayTeamName)
         {
             List<IWebElement> elements = WebElements("//div[@class = 'gl-MarketGroupButton_Text ' and contains(text(),'Full Time Result')]/parent::div/following-sibling::div/child::div/child::div/div/span[@class= 'gl-Participant_Odds']");

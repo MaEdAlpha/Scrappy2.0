@@ -62,5 +62,15 @@ namespace Scrappy2._0
             string path = start + middle + end;
             return path;
         }
+
+        public static bool ScrapeThisMatch(int webElementIndex)
+        {
+            string inPlayClockPath = "//div[contains(@class, 'rcl-ParticipantFixtureDetails_Details ')]["+ webElementIndex +"]/div[contains(@class,'rcl-ParticipantFixtureDetails_Clock rcl-ParticipantFixtureDetails_Clock-wide pi-CouponParticipantClockInPlay ')]";
+ 
+            bool scrapeThisMatch = AWebElement(inPlayClockPath) == null ? true : false;
+            return scrapeThisMatch;
+        }
+
+        //div[contains(@class, 'rcl-ParticipantFixtureDetails_Details ')]/div[contains(@class,'rcl-ParticipantFixtureDetails_Clock rcl-ParticipantFixtureDetails_Clock-wide pi-CouponParticipantClockInPlay ')]
     }
 }
