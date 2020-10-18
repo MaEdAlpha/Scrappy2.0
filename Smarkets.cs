@@ -53,7 +53,7 @@ namespace Scrappy2._0
             {
                 Console.WriteLine("Enter selection using , between numbers. To select all type 'all'.");
                 userInput = Console.ReadLine();
-                validate = userInput == "all" ? true : IsValidFormat(userInput);
+                validate = userInput == "all" ? true : IsValidFormat(userInput, smarketsUrlDict);
             } while (!validate);
 
             if (userInput != "all")
@@ -112,16 +112,15 @@ namespace Scrappy2._0
                 //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']/span[contains(@class, 'contract-item')][3]/div[@class='current-price']/span[@class ='offer']/span[1]
 
                 //Home Team
-                homeTeamXpth = "//ul[@class='event-list list-view  football']/li[@class='item-tile event-tile  upcoming layout-row   ']/descendant::span[@class = 'team-name'][" + (i * 2 - 1) + "]";
-                awayTeamXpth = "//ul[@class='event-list list-view  football']/li[@class='item-tile event-tile  upcoming layout-row   ']/descendant::span[@class = 'team-name'][" + (i * 2) + "]";
-                oddsHomeXpth = "//ul[@class='event-list list-view  football']/li[@class='item-tile event-tile  upcoming layout-row   '][" + i + "]/div[@class='contract-items  open ']/span[contains(@class, 'contract-item')][1]/div[@class='current-price']/span[@class ='offer']/span[1]";
-                oddsAwayXpth = "//ul[@class='event-list list-view  football']/li[@class='item-tile event-tile  upcoming layout-row   '][" + i + "]/div[@class='contract-items  open ']/span[contains(@class, 'contract-item')][3]/div[@class='current-price']/span[@class ='offer']/span[1]";
+                homeTeamXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'event-info-container')]/a[contains(@class, 'title  with-score')]/div[contains(@class, 'teams')]/div[contains(@class, 'team')][1]";
+                awayTeamXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'event-info-container')]/a[contains(@class, 'title  with-score')]/div[contains(@class, 'teams')]/div[contains(@class, 'team')][2]";
+                oddsHomeXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items  open ')]/span[contains(@class, 'contract-item')][1]/div[contains(@class, 'current-price')]/span[contains(@class,'bid')]/span[1]";
+                oddsAwayXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items  open ')]/span[contains(@class, 'contract-item')][3]/div[contains(@class, 'current-price')]/span[contains(@class, 'bid')]/span[1]";
                 dateTimeXpth = "//ul[@class='event-list list-view  football']/li[@class='item-tile event-tile  upcoming layout-row   '][" + i + "]//div[@class ='event-date']/time";
-                Console.WriteLine("Hitting If....");
+                
 
                 if (IsWithinDays(dateTimeXpth) <= 1000) //For Testing Purposes
                 {
-                    Console.WriteLine("Hello Ryan!");
                     if (AWebElement(homeTeamXpth).Text != null) //Home Team
                     {
                         homeTeam = AWebElement(homeTeamXpth).Text;
@@ -145,7 +144,7 @@ namespace Scrappy2._0
 
                     Console.WriteLine("HomeTeam: {0} AwayTeam: {1} oddsHome: {2} oddsAway: {3} dateTime = {4}", homeTeam, awayTeam, oddsHome, oddsAway, dateTimeResult);
 
-                    break;
+
                     //Write to Database
                     MongoCRUD db = new MongoCRUD("MBEdge");
 

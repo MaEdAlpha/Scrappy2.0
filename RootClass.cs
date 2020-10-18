@@ -64,10 +64,10 @@ namespace Scrappy2._0
             Console.WriteLine("Enter a single character 'y' or 'n' only");
             return false;
         }
-        public static bool IsValidFormat(string str)
+        public static bool IsValidFormat(string str, Dictionary<string,string> list)
         {
             List<string> items = str.Split(',').ToList();
-            int maxValue = Bet365.leagueDivisionDict.Count();
+            int maxValue = list.Count();
 
             foreach (string item in items)
             {

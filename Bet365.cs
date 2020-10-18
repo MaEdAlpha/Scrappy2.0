@@ -45,7 +45,7 @@ namespace Scrappy2._0
             {
                 Console.WriteLine("Enter selection using , between numbers. To select all type 'all'.");
                 userInput = Console.ReadLine();
-                validate = userInput == "all" ? true : IsValidFormat(userInput);
+                validate = userInput == "all" ? true : IsValidFormat(userInput, leagueDivisionDict);
             } while (!validate);
 
             if (userInput != "all")
