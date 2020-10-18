@@ -149,7 +149,7 @@ namespace Scrappy2._0
                     MongoCRUD db = new MongoCRUD("MBEdge");
 
                     //First Check if the match already exists. If it exists retrieve the object. If it doesn't, make a new one.
-                    if (db.CountRecordsByRefTag<long>("Matches", homeTeam.Trim() + " " + awayTeam.Trim()) < 1)
+                    if (db.CountRecordsByRefTag<long>("matches", homeTeam.Trim() + " " + awayTeam.Trim()) < 1)
                     {
 
                         MatchesModel match = new MatchesModel
@@ -162,17 +162,17 @@ namespace Scrappy2._0
                             SmarketsAwayOdds = oddsAway
                         };
 
-                        db.InsertRecord("Matches", match);
+                        db.InsertRecord("matches", match);
                     }
                     else
                     {
                         //We need to retrieve the existing document from the DB and update the fields
-                        var docUpdate = db.LoadRecordByRefTag<MatchesModel>("Matches", homeTeam.Trim() + " " + awayTeam.Trim());
+                        var docUpdate = db.LoadRecordByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim());
 
                         docUpdate.SmarketsHomeOdds = oddsHome;
                         docUpdate.SmarketsAwayOdds = oddsAway;
 
-                        db.UpsertRecordByRefTag<MatchesModel>("Matches", docUpdate, homeTeam.Trim() + " " + awayTeam.Trim());
+                        db.UpsertRecordByRefTag<MatchesModel>("matches", docUpdate, homeTeam.Trim() + " " + awayTeam.Trim());
                     }
                 }
             }

@@ -20,7 +20,7 @@ namespace Scrappy2._0
             public double B365AwayOdds { get; set; }
             public double B365BTTSOdds { get; set; }
             public double B365O25GoalsOdds { get; set; }
-            public DateTime StartDateTime { get; set; }
+            public string StartDateTime { get; set; }
             public string League { get; set; }
             public double OccurrenceHome { get; set; }
             public double OccurrenceAway { get; set; }

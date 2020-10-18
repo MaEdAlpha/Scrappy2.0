@@ -201,7 +201,7 @@ namespace Scrappy2._0
 
                             Console.WriteLine("Date: {0}\n Country: {1} \n League: {2} \n mTime: {3}\n home:{4}\n away:{5} \nODDS H/D/A: {6}/{7}/{8}", finalDate, divisionTitle, leagueTitle, matchTime, matchDetails[1].Trim(), matchDetails[2].Trim(), tempHomeOdds, tempDrawOdds, tempAwayOdds);
 
-                            WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails);
+                            WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
 
                             MatchPath matchItem = package;
                             MatchPath.SaveXpath(matchItem);
@@ -231,12 +231,12 @@ namespace Scrappy2._0
             }
         }
 
-        private static void WriteToDB(string leagueTitle, string tempHomeOdds, string tempDrawOdds, string tempAwayOdds, string[] matchDetails)
+        private static void WriteToDB(string leagueTitle, string tempHomeOdds, string tempDrawOdds, string tempAwayOdds, string[] matchDetails, string finalDate)
         {
             // Add the match the DB
             MongoCRUD db = new MongoCRUD("MBEdge");
             //First Check if the match already exists. If it exists retrieve the object. If it doesn't, make a new one.
-            if (db.CountRecordsByRefTag<long>("Matches", matchDetails[1].Trim() + " " + matchDetails[2].Trim()) < 1)
+            if (db.CountRecordsByRefTag<long>("matches", matchDetails[1].Trim() + " " + matchDetails[2].Trim()) < 1)
             {
 
                 MatchesModel match = new MatchesModel
@@ -253,7 +253,7 @@ namespace Scrappy2._0
                     //SmarketsHomeOdds = "6.6",
                     //SmarketsAwayOdds = "2.1",
                     League = leagueTitle,
-                    //StartDateTime = new DateTime(2020, 09, 28, 19, 0, 0, DateTimeKind.Utc)
+                    StartDateTime = finalDate
                 };
                 db.InsertRecord("Matches", match);
             }
