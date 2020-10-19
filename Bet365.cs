@@ -501,6 +501,9 @@ namespace Scrappy2._0
                 docUpdate.B365BTTSOdds = btsYesPath;
                 docUpdate.B365O25GoalsOdds = overTwoFivePath;
 
+                //Get Occurrence of 2up based on game odds
+                MatchOccurence.GetOccurrences(docUpdate);
+
                 db.UpsertRecordByRefTag<MatchesModel>("Matches", docUpdate, HomeTeamName + " " + AwayTeamName);
 
                 //
