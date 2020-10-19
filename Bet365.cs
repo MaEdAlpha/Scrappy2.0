@@ -405,7 +405,7 @@ namespace Scrappy2._0
                         Console.WriteLine("\n Entered a match!");
                         matchDetails.Click();
                         RandomSleep(3121);
-                        GrabBTTSData(webHome, webAway);
+                        GrabBTTSData(webHome, webAway, clonedDirectory[i].date, clonedDirectory[i].mTime);
                         RandomSleep(1130);
                         GoBack();
                         RandomSleep(1130);
@@ -454,8 +454,10 @@ namespace Scrappy2._0
             
             return true;
         }
-        private static void GrabBTTSData(string HomeTeamName, string AwayTeamName)
+        private static void GrabBTTSData(string HomeTeamName, string AwayTeamName, string date, string matchTime)
         {
+            string danielsDateData = date;
+            string danielsMatchTimedata = matchTime;
             List<IWebElement> elements = WebElements("//div[@class = 'gl-MarketGroupButton_Text ' and contains(text(),'Full Time Result')]/parent::div/following-sibling::div/child::div/child::div/div/span[@class= 'gl-Participant_Odds']");
 
             Double homeOddsPath = Convert.ToDouble(elements[0].Text);
