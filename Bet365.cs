@@ -240,40 +240,21 @@ namespace Scrappy2._0
         {
             // Add the match the DB
             MongoCRUD db = new MongoCRUD("MBEdge");
-            //First Check if the match already exists. If it exists retrieve the object. If it doesn't, make a new one.
-            if (db.CountRecordsByRefTag<long>("matches", matchDetails[1].Trim() + " " + matchDetails[2].Trim()) < 1)
+            MatchesModel match = new MatchesModel
             {
+                RefTag = matchDetails[1].Trim() + " " + matchDetails[2].Trim() + " " + finalDate,
+                HomeTeamName = matchDetails[1].Trim(),
+                AwayTeamName = matchDetails[2].Trim(),
+                B365HomeOdds = Convert.ToDouble(tempHomeOdds),
+                B365DrawOdds = Convert.ToDouble(tempDrawOdds),
+                B365AwayOdds = Convert.ToDouble(tempAwayOdds),
+                League = leagueTitle,
+                StartDateTime = finalDate
+            };
 
-                MatchesModel match = new MatchesModel
-                {
-                    RefTag = matchDetails[1].Trim() + " " + matchDetails[2].Trim(),
-                    HomeTeamName = matchDetails[1].Trim(),
-                    AwayTeamName = matchDetails[2].Trim(),
-                    // B365HomeOdds = tempHomeOdds,
-                    B365HomeOdds = Convert.ToDouble(tempHomeOdds),
-                    B365DrawOdds = Convert.ToDouble(tempDrawOdds),
-                    B365AwayOdds = Convert.ToDouble(tempAwayOdds),
-                    //B365BTTSOdds = "1.6",
-                    //B365O25GoalsOdds = "2.0",
-                    //SmarketsHomeOdds = "6.6",
-                    //SmarketsAwayOdds = "2.1",
-                    League = leagueTitle,
-                    StartDateTime = finalDate
-                };
-                db.InsertRecord("Matches", match);
-            }
-            else
-            {
-                //We need to retrieve the existing document from the DB and update the fields
-                var docUpdate = db.LoadRecordByRefTag<MatchesModel>("Matches", matchDetails[1].Trim() + " " + matchDetails[2].Trim());
-
-                docUpdate.B365HomeOdds = Convert.ToDouble(tempHomeOdds);
-                docUpdate.B365AwayOdds = Convert.ToDouble(tempAwayOdds);
-                docUpdate.B365DrawOdds = Convert.ToDouble(tempDrawOdds);
-
-                db.UpsertRecordByRefTag<MatchesModel>("Matches", docUpdate, matchDetails[1].Trim() + " " + matchDetails[2].Trim());
-            }
+            db.UpsertRecordByRefTag("Matches", match, match.RefTag);
         }
+
 
         private static void DebugPrintOdds(List<IWebElement> oddsList)
         {
