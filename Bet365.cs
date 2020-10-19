@@ -150,7 +150,7 @@ namespace Scrappy2._0
                 string matchTime;
                 pathCount = 0;
 
-                Console.Write("\nBuilding Directory {0}", leagueTitle);
+                Console.Write("\n Building Directory {0}", leagueTitle);
                 RandomSleep(2100);
 
                 //All dates and match titles. 
@@ -338,12 +338,13 @@ namespace Scrappy2._0
             DateTime dateconv = DateTime.Now;
             //string hours = splitTime[0];
             //string minutes = splitTime[1];
+
             if (month != "Jan")
             {
-                date = month + "" + dayInt + ", 2020 " + hoursMinutes.Trim() + ":00";
+                date = "2020 " + month + dayInt + " " + hoursMinutes.Trim() + ":00";
             } else
             {
-                date = month + "" + dayInt + ", 2021 " + hoursMinutes.Trim() + ":00";
+                date = "2021 " + month + dayInt + " " + hoursMinutes.Trim() + ":00";
             }
             try
             {
@@ -355,7 +356,7 @@ namespace Scrappy2._0
             {
                 Debug.Write(date);
             }
-            Console.WriteLine("WRONG DATETIME");
+            Console.WriteLine("WRONG DATETIME. Debug");
             return dateconv;
         }
         public static void CollectData()

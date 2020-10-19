@@ -139,7 +139,9 @@ namespace Scrappy2._0
                     }
                     if (AWebElement(dateTimeXpth).GetAttribute("datetime") != null)
                     {
-                        dateTimeResult = AWebElement(dateTimeXpth).GetAttribute("datetime");
+                        dateTimeResult = AWebElement(dateTimeXpth).GetAttribute("datetime").Trim('Z').Replace("T", " ");                
+                        DateTime date = DateTime.Parse(dateTimeResult).ToUniversalTime();
+                        dateTimeResult = date.ToString("MM/dd/yyyy HH:mm:ss");
                     }
 
                     Console.WriteLine("HomeTeam: {0} AwayTeam: {1} oddsHome: {2} oddsAway: {3} dateTime = {4}", homeTeam, awayTeam, oddsHome, oddsAway, dateTimeResult);
@@ -180,7 +182,7 @@ namespace Scrappy2._0
 
         private static double IsWithinDays(string xPath)
         {
-            //yyyy - MM - ddTHH:mm: ssZ (how SMarkets date is formatted)
+          
             string matchDate = AWebElement(xPath).GetAttribute("datetime");
             string format = "yyyy-MM-ddTHH:mm:ssZ";
 
