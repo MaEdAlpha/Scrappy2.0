@@ -6,10 +6,12 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using System.Threading;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Operations;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Interactions;
 
 namespace Scrappy2._0
 {
@@ -205,7 +207,7 @@ namespace Scrappy2._0
 
                                 Console.WriteLine("Date: {0}\n Country: {1} \n League: {2} \n mTime: {3}\n home:{4}\n away:{5} \nODDS H/D/A: {6}/{7}/{8}", finalDate, divisionTitle, leagueTitle, matchTime, matchDetails[1].Trim(), matchDetails[2].Trim(), tempHomeOdds, tempDrawOdds, tempAwayOdds);
 
-                                WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
+                                //WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
 
                                 MatchPath matchItem = package;
                                 MatchPath.SaveXpath(matchItem);
@@ -369,6 +371,8 @@ namespace Scrappy2._0
 
                 if(InPlay(homeTeam, awayTeam))
                 {
+                    Console.Write("\n {0} & {1} is InPlay. Do Nothing \n", homeTeam, awayTeam);
+                    RandomSleep(2312);
                     GoBack();
                 } else {
                     RandomSleep(2312);
@@ -386,25 +390,32 @@ namespace Scrappy2._0
 
                     if (webHome == homeTeam && awayTeam == webAway)
                     {
-                        Console.WriteLine("\nEntered a match!");
+                        Console.WriteLine("\n Entered a match!");
                         matchDetails.Click();
-                        RandomSleep(5121);
-                        GrabData(webHome, webAway);
+                        RandomSleep(3121);
+                        GrabBTTSData(webHome, webAway);
+                        RandomSleep(1130);
+                        GoBack();
+                        RandomSleep(1130);
+                        GoBack();
                     }
                     else
                     {
                         GoBack();
                     }
                 }
-              
-
-
             }
         }
 
         private static void GoBack()
         {
-            IWebElement button = AWebElement("//div[@class= 'sph-BreadcrumbTrail_Breadcrumb ']");
+            IWebElement button;
+            do
+            {
+                button = AWebElement("//div[contains(@class, 'sph-BreadcrumbTrail_Breadcrumb ')]");
+
+            } while (button == null);
+
             button.Click();
         }
 
@@ -413,19 +424,22 @@ namespace Scrappy2._0
 
             string homeCheck = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), '"+ home.Trim() +"')]";
             string awayCheck = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][2]/div[contains(text(), '" + away.Trim() + "')]";
+            Thread.Sleep(21000);
             bool homeMatch = AWebElement(homeCheck) != null ? true : false;
+            Thread.Sleep(2100);
             bool awayMatch = AWebElement(awayCheck) != null ? true : false;
 
+            Debug.Print("\n Boolean Results -> Home:{2} {0} Away:{3} {1}\n", homeMatch, awayMatch, home, away);
             if(homeMatch && awayMatch)
             {
                 string inPlayCheck = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), " + home.Trim() + ")]/parent::div/parent::div/parent::div/parent::div/div/div[contains(@class,'Clock')]/div[contains(@class,'ClockInPlay_Extra')]";
                 bool isInPlay = AWebElement(inPlayCheck) != null ? true : false;
                 return isInPlay;
             }
-            Console.WriteLine("In InPlay Method...something probably went wrong?H{0},A{1}", home, away);
+            
             return true;
         }
-        private static void GrabData(string HomeTeamName, string AwayTeamName)
+        private static void GrabBTTSData(string HomeTeamName, string AwayTeamName)
         {
             List<IWebElement> elements = WebElements("//div[@class = 'gl-MarketGroupButton_Text ' and contains(text(),'Full Time Result')]/parent::div/following-sibling::div/child::div/child::div/div/span[@class= 'gl-Participant_Odds']");
 
@@ -440,6 +454,13 @@ namespace Scrappy2._0
 
 
             // Add the match the DB
+            //BTTStoDB(HomeTeamName, AwayTeamName, homeOddsPath, drawOddsPath, awayOddsPath, overTwoFivePath, btsYesPath);
+
+            Console.WriteLine("Over2.5: {0} BTS(yes): {1} Home: {2} Draw: {3} Away: {4} ", overTwoFivePath, btsYesPath, homeOddsPath, drawOddsPath, awayOddsPath);
+        }
+
+        private static void BTTStoDB(string HomeTeamName, string AwayTeamName, double homeOddsPath, double drawOddsPath, double awayOddsPath, double overTwoFivePath, double btsYesPath)
+        {
             MongoCRUD db = new MongoCRUD("MBEdge");
             //First Check if the match already exists. If it exists retrieve the object. If it doesn't, make a new one.
 
@@ -489,18 +510,8 @@ namespace Scrappy2._0
 
                 //
             }
-
-
-            Console.WriteLine("Over2.5: {0} BTS(yes): {1} Home: {2} Draw: {3} Away: {4} ", overTwoFivePath, btsYesPath, homeOddsPath, drawOddsPath, awayOddsPath);
-            RandomSleep(3130);
-            IWebElement button = AWebElement("//div[@class= 'sph-BreadcrumbTrail_Breadcrumb ']");
-            button.Click();
-            //GO BACK TO ROOT URL
-            RandomSleep(2130);
-            IWebElement button2 = AWebElement("//div[@class= 'sph-BreadcrumbTrail_Breadcrumb ']");
-            button2.Click();
-
         }
+
         public static void InitiateList()
         {
             leagueDivisionDict.Add("UEFA Champions League", "UEFA Competitions");
