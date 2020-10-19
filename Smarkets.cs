@@ -117,7 +117,7 @@ namespace Scrappy2._0
                 oddsHomeXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items  open ')]/span[contains(@class, 'contract-item')][1]/div[contains(@class, 'current-price')]/span[contains(@class,'bid')]/span[1]";
                 oddsAwayXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items  open ')]/span[contains(@class, 'contract-item')][3]/div[contains(@class, 'current-price')]/span[contains(@class, 'bid')]/span[1]";
                 dateTimeXpth = "//ul[@class='event-list list-view  football']/li[@class='item-tile event-tile  upcoming layout-row   '][" + i + "]//div[@class ='event-date']/time";
-                
+
 
                 if (IsWithinDays(dateTimeXpth) <= 1000) //For Testing Purposes
                 {
@@ -150,35 +150,24 @@ namespace Scrappy2._0
                     //Write to Database
                     MongoCRUD db = new MongoCRUD("MBEdge");
 
-                    //First Check if the match already exists. If it exists retrieve the object. If it doesn't, make a new one.
-                    if (db.CountRecordsByRefTag<long>("matches", homeTeam.Trim() + " " + awayTeam.Trim()) < 1)
+
+                    MatchesModel match = new MatchesModel
                     {
+                        RefTag = homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult,
+                        HomeTeamName = homeTeam.Trim(),
+                        AwayTeamName = awayTeam.Trim(),
+                        StartDateTime = dateTimeResult,
 
-                        MatchesModel match = new MatchesModel
-                        {
-                            RefTag = homeTeam.Trim() + " " + awayTeam.Trim(),
-                            HomeTeamName = homeTeam.Trim(),
-                            AwayTeamName = awayTeam.Trim(),
+                        SmarketsHomeOdds = oddsHome,
+                        SmarketsAwayOdds = oddsAway
+                    };
 
-                            SmarketsHomeOdds = oddsHome,
-                            SmarketsAwayOdds = oddsAway
-                        };
-
-                        db.InsertRecord("matches", match);
-                    }
-                    else
-                    {
-                        //We need to retrieve the existing document from the DB and update the fields
-                        var docUpdate = db.LoadRecordByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim());
-
-                        docUpdate.SmarketsHomeOdds = oddsHome;
-                        docUpdate.SmarketsAwayOdds = oddsAway;
-
-                        db.UpsertRecordByRefTag<MatchesModel>("matches", docUpdate, homeTeam.Trim() + " " + awayTeam.Trim());
-                    }
+                    db.UpsertRecordByRefTag<MatchesModel>("matches", match, match.RefTag);
                 }
+
             }
         }
+
 
         private static double IsWithinDays(string xPath)
         {

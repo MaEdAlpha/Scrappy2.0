@@ -9,7 +9,7 @@ namespace Scrappy2._0
         class MatchesModel
         {
             [BsonId]
-            public Guid Id { get; set; }
+            //public Guid Id { get; set; }
             public string RefTag { get; set; }
             public string HomeTeamName { get; set; }
             public string AwayTeamName { get; set; }
