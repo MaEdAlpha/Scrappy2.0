@@ -153,10 +153,10 @@ namespace Scrappy2._0
                 pathCount = 0;
 
                 Console.Write("\n Building Directory {0}", leagueTitle);
-                RandomSleep(2100);
-
+                RandomSleep(1500);
                 //All dates and match titles. 
-                List<IWebElement> matchesList = WebElements("//div[contains(@class, 'sgl-MarketFixtureDetailsLabelExpand3 gl-Market_General gl-Market_General-columnheader gl-Market_General-haslabels ')]/child::div");
+                string forAllMatches = "//div[contains(@class, 'sgl-MarketFixtureDetailsLabelExpand3 gl-Market_General gl-Market_General-columnheader gl-Market_General-haslabels ')]/child::div";
+                List<IWebElement> matchesList = WebElements(forAllMatches);
 
                 try
                 {
@@ -222,7 +222,7 @@ namespace Scrappy2._0
                 {
                     Debug.Print("------> Stale Element {0}",serex.Message);
                     //GetWebElement again.
-                    matchesList = WebElements("//div[contains(@class, 'sgl-MarketFixtureDetailsLabelExpand3 gl-Market_General gl-Market_General-columnheader gl-Market_General-haslabels ')]/child::div");
+                    matchesList = WebElements(forAllMatches);
                 }
                 catch (Exception e)
                 {
@@ -232,7 +232,7 @@ namespace Scrappy2._0
                 finally
                 {
                     Console.WriteLine("\n Total Matches found: {0} \n", leagueMatchCount);
-                    RandomSleep(2130);
+                    RandomSleep(1930);
                     driver.Navigate().Back();
                 }
             }
@@ -289,7 +289,6 @@ namespace Scrappy2._0
         //Checks to see if headerTitle(United Kingdom...UEFA Champions League etc.. is showing it's leagues. If not expanded, it returns false. If expanded true.
         public static bool IsAccessibleCheck(string _headerTitle, string _leagueTitle)
         {
-
             string xPath = CheckOpenHeaderXpath(_headerTitle);
 
             if (AWebElement(xPath) != null)
@@ -302,12 +301,11 @@ namespace Scrappy2._0
                 IWebElement container = AWebElement(xPath);
                 bool answer = AWebElement(xPath) != null ? true : false;
 
-                    if (container != null)
-                    {
-                        container.Click(); // opens drop down
-                        return answer;
-                    }
-
+                 if (container != null)
+                 {
+                   container.Click(); // opens drop down
+                   return answer;
+                 }
                 return false;
             }
         }
@@ -333,13 +331,10 @@ namespace Scrappy2._0
         }
         private static DateTime ConverToDateTime(string dateString, string hoursMinutes)
         {
-            //string[] splitTime = hoursMinutes.Split(":");
             string date;
             string dayInt = dateString.Substring(4, 2);
             string month = dateString.Substring(7, 3);
             DateTime dateconv = DateTime.Now;
-            //string hours = splitTime[0];
-            //string minutes = splitTime[1];
 
             if (month != "Jan")
             {
@@ -351,13 +346,13 @@ namespace Scrappy2._0
             try
             {
                 dateconv = DateTime.Parse(date).ToUniversalTime();
-
                 return dateconv;
             }
             catch (Exception)
             {
                 Debug.Write(date);
             }
+            
             Console.WriteLine("WRONG DATETIME. Debug");
             return dateconv;
         }
@@ -400,12 +395,10 @@ namespace Scrappy2._0
                     string xPathHome = GetMatchXpath(homeTeam); // get xPath for homeT
                     string xPathAway = GetMatchXpath(awayTeam); ; // get xPath for awayT
 
-
                     IWebElement matchDetails = AWebElement(xPathHome);
                     string webHome = matchDetails.Text.Trim();
                     string webAway = AWebElement(xPathAway).Text.Trim();
                     //string webDate = AWebElement(xPathDate).Text.Trim();
-
 
                     if (webHome == homeTeam && awayTeam == webAway)
                     {
@@ -428,10 +421,12 @@ namespace Scrappy2._0
 
         private static void GoBack()
         {
+            string forBackButton = "//div[contains(@class, 'sgl-MarketFixtureDetailsLabelExpand3 gl-Market_General gl-Market_General-columnheader gl-Market_General-haslabels ')]/child::div";
+
             IWebElement button;
             do
             {
-                button = AWebElement("//div[contains(@class, 'sph-BreadcrumbTrail_Breadcrumb ')]");
+                button = AWebElement(forBackButton);
 
             } while (button == null);
 
@@ -441,18 +436,19 @@ namespace Scrappy2._0
         private static bool InPlay(string home, string away)
         {
 
-            string homeCheck = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), '"+ home.Trim() +"')]";
-            string awayCheck = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][2]/div[contains(text(), '" + away.Trim() + "')]";
+            string forHomeTeam = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), '"+ home.Trim() +"')]";
+            string forAwayTeam = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][2]/div[contains(text(), '" + away.Trim() + "')]";
             Thread.Sleep(21000);
-            bool homeMatch = AWebElement(homeCheck) != null ? true : false;
+            bool homeTeam = AWebElement(forHomeTeam) != null ? true : false;
             Thread.Sleep(2100);
-            bool awayMatch = AWebElement(awayCheck) != null ? true : false;
+            bool awayTeamMatch = AWebElement(forAwayTeam) != null ? true : false;
 
-            Debug.Print("\n Boolean Results -> Home:{2} {0} Away:{3} {1}\n", homeMatch, awayMatch, home, away);
-            if(homeMatch && awayMatch)
+            Debug.Print("\n Boolean Results -> Home:{2} {0} Away:{3} {1}\n", homeTeam, awayTeamMatch, home, away);
+            if(homeTeam && awayTeamMatch)
             {
-                string inPlayCheck = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), " + home.Trim() + ")]/parent::div/parent::div/parent::div/parent::div/div/div[contains(@class,'Clock')]/div[contains(@class,'ClockInPlay_Extra')]";
-                bool isInPlay = AWebElement(inPlayCheck) != null ? true : false;
+                //This checks the div element that contains the inPlay clock data value. 
+                string forInPlayClock = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), " + home.Trim() + ")]/parent::div/parent::div/parent::div/parent::div/div/div[contains(@class,'Clock')]/div[contains(@class,'ClockInPlay_Extra')]";
+                bool isInPlay = AWebElement(forInPlayClock) != null ? true : false;
                 return isInPlay;
             }
             
