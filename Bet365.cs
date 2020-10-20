@@ -348,12 +348,11 @@ namespace Scrappy2._0
             Console.WriteLine("\n Collecting Data for {0} matches...", directoryList.Count());
 
             //Create an inefficient way to travel to these pages. Humanizes the URL navigation
-            Shuffle(clonedDirectory);
+             Shuffle(clonedDirectory);
 
             //Print(clonedDirectory);
             for (int i = 0; i < clonedDirectory.Count(); i++)
             {
-                RandomSleep(4312);
                 //Enter into first league.
                 string divisionTitle = clonedDirectory[i].country;
                 string leagueTitle = clonedDirectory[i].league;
@@ -361,16 +360,17 @@ namespace Scrappy2._0
                 string homeTeam = clonedDirectory[i].homeT;
                 string awayTeam = clonedDirectory[i].awayT;
 
+                RandomSleep(1112);
                 AccessLeagueElement(divisionTitle, leagueTitle); //Brings you to current list of matches for specified league.
                 //Access specific match detail, then bring back to the root page. 
 
                 if(InPlay(homeTeam, awayTeam))
                 {
                     Console.Write("\n {0} & {1} is InPlay. Do Nothing \n", homeTeam, awayTeam);
-                    RandomSleep(2312);
-                    GoBack();
+                    RandomSleep(512);
+                    driver.Navigate().Back() ;
                 } else {
-                    RandomSleep(2312);
+                    RandomSleep(1312);
                     //Find Match
 
                     string xPathHome = GetMatchXpath(homeTeam); // get xPath for homeT
@@ -385,16 +385,16 @@ namespace Scrappy2._0
                     {
                         Console.WriteLine("\n Entered a match!");
                         matchDetails.Click();
-                        RandomSleep(3121);
+                        RandomSleep(721);
                         GrabBTTSData(webHome, webAway, clonedDirectory[i].date, clonedDirectory[i].mTime);
-                        RandomSleep(1130);
-                        GoBack();
-                        RandomSleep(1130);
-                        GoBack();
+                        RandomSleep(500);
+                        driver.Navigate().Back();
+                        RandomSleep(1030);
+                        driver.Navigate().Back();
                     }
                     else
                     {
-                        GoBack();
+                        driver.Navigate().Back();
                     }
                 }
             }
@@ -402,13 +402,13 @@ namespace Scrappy2._0
 
         private static void GoBack()
         {
-            string forBackButton = "//div[contains(@class, 'sgl-MarketFixtureDetailsLabelExpand3 gl-Market_General gl-Market_General-columnheader gl-Market_General-haslabels ')]/child::div";
+           // string forBackButton = "//div[contains(@class, 'sgl-MarketFixtureDetailsLabelExpand3 gl-Market_General gl-Market_General-columnheader gl-Market_General-haslabels ')]/child::div";
 
             IWebElement button;
             do
             {
-                button = AWebElement(forBackButton);
-
+                button = AWebElement("//div[contains(@class, 'sgl-MarketFixtureDetailsLabelExpand3 gl-Market_General gl-Market_General-columnheader gl-Market_General-haslabels ')]/child::div");
+                Thread.Sleep(500);
             } while (button == null);
 
             button.Click();
@@ -419,7 +419,7 @@ namespace Scrappy2._0
 
             string forHomeTeam = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), '"+ home.Trim() +"')]";
             string forAwayTeam = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][2]/div[contains(text(), '" + away.Trim() + "')]";
-            Thread.Sleep(21000);
+            Thread.Sleep(1800);
             bool homeTeam = AWebElement(forHomeTeam) != null ? true : false;
             Thread.Sleep(2100);
             bool awayTeamMatch = AWebElement(forAwayTeam) != null ? true : false;
@@ -439,14 +439,20 @@ namespace Scrappy2._0
         {
             string danielsDateData = date;
             string danielsMatchTimedata = matchTime;
-            List<IWebElement> elements = WebElements("//div[@class = 'gl-MarketGroupButton_Text ' and contains(text(),'Full Time Result')]/parent::div/following-sibling::div/child::div/child::div/div/span[@class= 'gl-Participant_Odds']");
+            RandomSleep(700);
+            List<IWebElement> elements = null;
+            do
+            {
+              elements = WebElements("//div[contains(@class, 'gl-MarketGroupButton_Text ') and contains(text(),'Full Time Result')]/parent::div/following-sibling::div/child::div/child::div/div/span[contains(@class, 'gl-Participant_Odds')]");
+
+            } while (elements.Count < 2);
 
             Double homeOddsPath = Convert.ToDouble(elements[0].Text);
             Double drawOddsPath = Convert.ToDouble(elements[1].Text);
             Double awayOddsPath = Convert.ToDouble(elements[2].Text);
 
             List<IWebElement> odds = WebElements("//div[@class = 'gl-MarketGroupButton_Text ' and contains(text(),'Goals Over/Under')]/parent::div/following-sibling::div/div/div/div/span[@class='gl-ParticipantOddsOnly_Odds']");
-            RandomSleep(2121);
+            RandomSleep(1121);
             Double overTwoFivePath = Convert.ToDouble(odds[0].Text);
             Double btsYesPath = Convert.ToDouble(AWebElement("//div[@class = 'gl-MarketGroupButton_Text ' and contains(text(),'Both Teams to Score')]/parent::div/following-sibling::div/descendant::span[@class= 'gl-ParticipantBorderless_Odds'][1]").Text);
 
