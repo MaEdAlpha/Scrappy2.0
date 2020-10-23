@@ -207,7 +207,7 @@ namespace Scrappy2._0
 
                                 Console.WriteLine("Date: {0}\n Country: {1} \n League: {2} \n mTime: {3}\n home:{4}\n away:{5} \nODDS H/D/A: {6}/{7}/{8}", finalDate, divisionTitle, leagueTitle, matchTime, matchDetails[1].Trim(), matchDetails[2].Trim(), tempHomeOdds, tempDrawOdds, tempAwayOdds);
 
-                                //WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
+                                WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
 
                                 MatchPath matchItem = package;
                                 MatchPath.SaveXpath(matchItem);
@@ -254,7 +254,7 @@ namespace Scrappy2._0
                 StartDateTime = finalDate
             };
 
-            db.UpsertRecordByRefTag("Matches", match, match.RefTag);
+            db.UpsertRecordByRefTag("matches", match, match.RefTag);
         }
 
 
@@ -439,6 +439,14 @@ namespace Scrappy2._0
         {
             string danielsDateData = date;
             string danielsMatchTimedata = matchTime;
+
+            //DateTime d = DateTime.Parse(
+            //date,
+            //new System.Globalization.CultureInfo("en-GB"));
+
+            //DateTime oDate = date.ToLongDateString(;
+            //danielsDateData = oDate.Day + "-" + oDate.Month + "-" + oDate.Year + " " + oDate.Hour + ":" + oDate.Minute + ":" + oDate.Second;
+
             RandomSleep(700);
             List<IWebElement> elements = null;
             do
@@ -458,63 +466,35 @@ namespace Scrappy2._0
 
 
             // Add the match the DB
-            //BTTStoDB(HomeTeamName, AwayTeamName, homeOddsPath, drawOddsPath, awayOddsPath, overTwoFivePath, btsYesPath);
+            BTTStoDB(HomeTeamName, AwayTeamName, homeOddsPath, drawOddsPath, awayOddsPath, overTwoFivePath, btsYesPath, danielsDateData);
 
             Console.WriteLine("Over2.5: {0} BTS(yes): {1} Home: {2} Draw: {3} Away: {4} ", overTwoFivePath, btsYesPath, homeOddsPath, drawOddsPath, awayOddsPath);
         }
 
-        private static void BTTStoDB(string HomeTeamName, string AwayTeamName, double homeOddsPath, double drawOddsPath, double awayOddsPath, double overTwoFivePath, double btsYesPath)
+        private static void BTTStoDB(string HomeTeamName, string AwayTeamName, double homeOddsPath, double drawOddsPath, double awayOddsPath, double overTwoFivePath, double btsYesPath, string GameStartDate)
         {
             MongoCRUD db = new MongoCRUD("MBEdge");
-            //First Check if the match already exists. If it exists retrieve the object. If it doesn't, make a new one.
-
-            if (db.CountRecordsByRefTag<long>("Matches", HomeTeamName + " " + AwayTeamName) < 1)
-            {
 
                 MatchesModel match = new MatchesModel
                 {
-                    RefTag = HomeTeamName + " " + AwayTeamName,
+                    RefTag = HomeTeamName + " " + AwayTeamName + " " + GameStartDate,
                     HomeTeamName = HomeTeamName,
                     AwayTeamName = AwayTeamName,
-                    // B365HomeOdds = tempHomeOdds,
                     B365HomeOdds = homeOddsPath,
                     B365DrawOdds = drawOddsPath,
                     B365AwayOdds = awayOddsPath,
                     B365BTTSOdds = btsYesPath,
                     B365O25GoalsOdds = overTwoFivePath,
-                    //SmarketsHomeOdds = "6.6",
-                    //SmarketsAwayOdds = "2.1",
-                    //League = league,
-                    //StartDateTime = new DateTime(2020, 09, 28, 19, 0, 0, DateTimeKind.Utc)
+                    StartDateTime = GameStartDate
 
                 };
 
                 //Get Occurrence of 2up based on game odds
                 MatchOccurence.GetOccurrences(match);
 
-                db.InsertRecord("Matches", match);
+                db.UpsertRecordByRefTag<MatchesModel>("matches", match, HomeTeamName + " " + AwayTeamName);
 
             }
-            else
-            {
-                //We need to retrieve the existing document from the DB and update the fields
-                var docUpdate = db.LoadRecordByRefTag<MatchesModel>("Matches", HomeTeamName + " " + AwayTeamName);
-                //
-
-                docUpdate.B365HomeOdds = homeOddsPath;
-                docUpdate.B365AwayOdds = awayOddsPath;
-                docUpdate.B365DrawOdds = drawOddsPath;
-                docUpdate.B365BTTSOdds = btsYesPath;
-                docUpdate.B365O25GoalsOdds = overTwoFivePath;
-
-                //Get Occurrence of 2up based on game odds
-                MatchOccurence.GetOccurrences(docUpdate);
-
-                db.UpsertRecordByRefTag<MatchesModel>("Matches", docUpdate, HomeTeamName + " " + AwayTeamName);
-
-                //
-            }
-        }
 
         public static void InitiateList()
         {
