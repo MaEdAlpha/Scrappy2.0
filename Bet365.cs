@@ -185,7 +185,7 @@ namespace Scrappy2._0
                                 string item = matchWebElement.Text;
                                 string[] matchDetails = matchWebElement.Text.Split("\r\n");
 
-                                finalDate = ConverToDateTime(tempDate, matchDetails[0]).ToString("MM/dd/yyyy HH:mm:ss");
+                                finalDate = ConverToDateTime(tempDate, matchDetails[0]).ToString("dd/MM/yyyy HH:mm:ss");
                                 matchTime = ConverToDateTime(tempDate, matchDetails[0]).ToString("HH:mm");
 
 
@@ -440,12 +440,7 @@ namespace Scrappy2._0
             string danielsDateData = date;
             string danielsMatchTimedata = matchTime;
 
-            //DateTime d = DateTime.Parse(
-            //date,
-            //new System.Globalization.CultureInfo("en-GB"));
 
-            //DateTime oDate = date.ToLongDateString(;
-            //danielsDateData = oDate.Day + "-" + oDate.Month + "-" + oDate.Year + " " + oDate.Hour + ":" + oDate.Minute + ":" + oDate.Second;
 
             RandomSleep(700);
             List<IWebElement> elements = null;
