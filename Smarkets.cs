@@ -140,7 +140,7 @@ namespace Scrappy2._0
                     if (AWebElement(dateTimeXpth).GetAttribute("datetime") != null)
                     {
                         dateTimeResult = AWebElement(dateTimeXpth).GetAttribute("datetime").Trim('Z').Replace("T", " ");                
-                        DateTime date = DateTime.Parse(dateTimeResult).ToUniversalTime();
+                        DateTime date = DateTime.Parse(dateTimeResult);
                         dateTimeResult = date.ToString("dd/MM/yyyy HH:mm:ss");
                         //10 - 25 - 2020 15:00:00 Smarkets
                         //10 - 24 - 2020 21:00:00

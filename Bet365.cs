@@ -185,7 +185,7 @@ namespace Scrappy2._0
                                 string item = matchWebElement.Text;
                                 string[] matchDetails = matchWebElement.Text.Split("\r\n");
 
-                                finalDate = ConverToDateTime(tempDate, matchDetails[0]).ToString("dd/MM/yyyy HH:mm:ss");
+                                finalDate = ConverToDateTime(tempDate, matchDetails[0]).ToUniversalTime().ToString("dd/MM/yyyy HH:mm:ss");
                                 matchTime = ConverToDateTime(tempDate, matchDetails[0]).ToString("HH:mm");
 
 
@@ -316,6 +316,7 @@ namespace Scrappy2._0
             string dayInt = dateString.Substring(4, 2);
             string month = dateString.Substring(7, 3);
             DateTime dateconv = DateTime.Now;
+            var offset = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
 
             if (month != "Jan")
             {
@@ -326,7 +327,7 @@ namespace Scrappy2._0
             }
             try
             {
-                dateconv = DateTime.Parse(date).ToUniversalTime();
+                dateconv = DateTime.SpecifyKind(DateTime.Parse(date) - offset, DateTimeKind.Utc);
                 return dateconv;
             }
             catch (Exception)
@@ -437,9 +438,9 @@ namespace Scrappy2._0
         }
         private static void GrabBTTSData(string HomeTeamName, string AwayTeamName, string date, string matchTime)
         {
-            string danielsDateData = date;
+            string danielsDateData = ConverToDateTime(date, matchTime).ToString("dd/MM/yyyy HH:mm:ss");
             string danielsMatchTimedata = matchTime;
-
+            
 
 
             RandomSleep(700);
@@ -487,7 +488,7 @@ namespace Scrappy2._0
                 //Get Occurrence of 2up based on game odds
                 MatchOccurence.GetOccurrences(match);
 
-                db.UpsertRecordByRefTag<MatchesModel>("matches", match, HomeTeamName + " " + AwayTeamName);
+                db.UpsertRecordByRefTag<MatchesModel>("matches", match, match.RefTag);
 
             }
 
