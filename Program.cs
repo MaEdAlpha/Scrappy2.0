@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Scrappy2._0
@@ -11,12 +12,17 @@ namespace Scrappy2._0
         public static bool scrapingSmarkets = false;
         public static bool bttsEnabled = false;
         public static bool pathListPopulated = false;
-        //public static MongoClient clientDb;
+        public static List <TeamNamesModel> TeamNamesLibrary;
+
+        //Lookup array of team names keyvalue and secondary value. Used throughout.
 
         public static void Main()
         {
             ScrapeSelector valueOf = new ScrapeSelector(); //First selection user makes. Passed into HandleSelection.
             //clientDb = new MongoClient("mongodb + srv://Randy:M7bkD0xFr91G0DfA@clusterme.lfzcj.mongodb.net/matchEdge?retryWrites=true&w=majority");
+
+            MongoCRUD db = new MongoCRUD("MBEdge");
+            TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
 
             while (settingUp) { 
                     ScrapeSelector.HandleSelection(valueOf.SelectedSite());
@@ -34,7 +40,7 @@ namespace Scrappy2._0
 
             while (scrapingSmarkets)
             {
-                Smarkets.ScrapeLeague();
+            Smarkets.ScrapeLeague();
             }
         }
     }

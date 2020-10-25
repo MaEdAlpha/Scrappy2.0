@@ -166,6 +166,38 @@ namespace Scrappy2._0
                     };
 
                     db.UpsertRecordByRefTag<MatchesModel>("matches", match, match.RefTag);
+
+
+
+                    //Check to see if Team names are already in list. if not add them in
+                    
+                    if (GetUniversalTeamName(homeTeam) is null)
+                    {
+                        TeamNamesModel TeamNamesModel = new TeamNamesModel
+                        {
+                            _id = match.HomeTeamName,
+                         };
+                        db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
+                        
+                        //Updates the internal list of team names to include any new addtions from previous scrape
+                        Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
+                    }
+                    
+
+                    if (GetUniversalTeamName(awayTeam) is null)
+                    {
+                        TeamNamesModel TeamNamesModel = new TeamNamesModel
+                        {
+                            _id = match.AwayTeamName,
+                        };
+                        db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
+
+                        //Updates the internal list of team names to include any new addtions from previous scrape
+                        Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
+                    }
+
+
+
                 }
 
             }

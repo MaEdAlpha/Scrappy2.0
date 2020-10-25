@@ -205,6 +205,7 @@ namespace Scrappy2._0
                                 tempDrawOdds = oddsList[((oddsList.Count / 3) - 1) + pathCount].Text;
                                 tempAwayOdds = oddsList[((oddsList.Count / 3 * 2) - 1) + pathCount].Text;
 
+                                
                                 Console.WriteLine("Date: {0}\n Country: {1} \n League: {2} \n mTime: {3}\n home:{4}\n away:{5} \nODDS H/D/A: {6}/{7}/{8}", finalDate, divisionTitle, leagueTitle, matchTime, matchDetails[1].Trim(), matchDetails[2].Trim(), tempHomeOdds, tempDrawOdds, tempAwayOdds);
 
                                 WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
@@ -240,6 +241,10 @@ namespace Scrappy2._0
 
         private static void WriteToDB(string leagueTitle, string tempHomeOdds, string tempDrawOdds, string tempAwayOdds, string[] matchDetails, string finalDate)
         {
+            //Set team names to be universal 
+            matchDetails[1] = GetUniversalTeamName(matchDetails[1].Trim());
+            matchDetails[2] = GetUniversalTeamName(matchDetails[2].Trim());
+
             // Add the match the DB
             MongoCRUD db = new MongoCRUD("MBEdge");
             MatchesModel match = new MatchesModel
@@ -441,8 +446,6 @@ namespace Scrappy2._0
             string danielsDateData = ConverToDateTime(date, matchTime).ToString("dd/MM/yyyy HH:mm:ss");
             string danielsMatchTimedata = matchTime;
             
-
-
             RandomSleep(700);
             List<IWebElement> elements = null;
             do
@@ -462,7 +465,7 @@ namespace Scrappy2._0
 
 
             // Add the match the DB
-            BTTStoDB(HomeTeamName, AwayTeamName, homeOddsPath, drawOddsPath, awayOddsPath, overTwoFivePath, btsYesPath, danielsDateData);
+            BTTStoDB(GetUniversalTeamName(HomeTeamName), GetUniversalTeamName(AwayTeamName), homeOddsPath, drawOddsPath, awayOddsPath, overTwoFivePath, btsYesPath, danielsDateData);
 
             Console.WriteLine("Over2.5: {0} BTS(yes): {1} Home: {2} Draw: {3} Away: {4} ", overTwoFivePath, btsYesPath, homeOddsPath, drawOddsPath, awayOddsPath);
         }

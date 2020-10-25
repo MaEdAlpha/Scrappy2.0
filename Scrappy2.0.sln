@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scrappy2.0", "Scrappy2.0.csproj", "{AC3015B2-467F-49DB-8355-8EC7D9E8178D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AC3015B2-467F-49DB-8355-8EC7D9E8178D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC3015B2-467F-49DB-8355-8EC7D9E8178D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC3015B2-467F-49DB-8355-8EC7D9E8178D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC3015B2-467F-49DB-8355-8EC7D9E8178D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7AEFB67F-2196-47A6-BABC-5F5B35354402}
+	EndGlobalSection
+EndGlobal

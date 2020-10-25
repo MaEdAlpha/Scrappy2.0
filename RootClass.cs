@@ -13,6 +13,8 @@ namespace Scrappy2._0
     {
         public static IWebDriver driver;
         public static DateTime timeZero;
+        //HOLDS THE FULL LIST OF TEAMNAMES 
+
         public static void GetRootPage(string url)
         {
             ChromeOptions options = new ChromeOptions();
@@ -108,6 +110,23 @@ namespace Scrappy2._0
                 chain = chain + j + ",";
             }         
             return chain.Remove(chain.Length - 1);
+        }
+
+        public static string GetUniversalTeamName(string TeamName)
+        {
+            TeamNamesModel Result;
+
+            Result =  Program.TeamNamesLibrary.Find(i => i._id == TeamName);
+
+            if (Result is null) 
+            {
+                return null;
+            }
+            else
+            { 
+                return Result._id;
+            };
+
         }
     }
 }

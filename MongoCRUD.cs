@@ -19,8 +19,8 @@ namespace Scrappy2._0
             //  db = client.GetDatabase(database);
 
             //ATLAS
-            var connectionString = "mongodb+srv://Randy:M7bkD0xFr91G0DfA@clusterme.lfzcj.mongodb.net/MBEdge?retryWrites=true&w=majority";
-            //var connectionString = "mongodb+srv://Dan:x6RTQn5bD79QLjkJ@cluster0.uljb3.gcp.mongodb.net/MBEdge?retryWrites=true&w=majority";
+            //var connectionString = "mongodb+srv://Randy:M7bkD0xFr91G0DfA@clusterme.lfzcj.mongodb.net/MBEdge?retryWrites=true&w=majority";
+            var connectionString = "mongodb+srv://Dan:x6RTQn5bD79QLjkJ@cluster0.uljb3.gcp.mongodb.net/MBEdge?retryWrites=true&w=majority";
             var client = new MongoClient(connectionString);
             db = client.GetDatabase(database);
         }
@@ -38,6 +38,7 @@ namespace Scrappy2._0
             return collection.Find(new BsonDocument()).ToList();
         }
 
+        
         public T LoadRecordById<T>(string table, Guid id)
         {
             var collection = db.GetCollection<T>(table);
@@ -62,7 +63,7 @@ namespace Scrappy2._0
             return collection.Find(filter).CountDocuments();
         }
 
-
+     
         public void UpsertRecord<T>(string table, Guid id, T record)
         {
             // Create the collection
