@@ -116,7 +116,7 @@ namespace Scrappy2._0
         {
             TeamNamesModel Result;
 
-            Result =  Program.TeamNamesLibrary.Find(i => i._id == TeamName);
+            Result =  Program.TeamNamesLibrary.Find(i => i._idAlias == TeamName);
 
             if (Result is null) 
             {
@@ -124,9 +124,27 @@ namespace Scrappy2._0
             }
             else
             { 
-                return Result._id;
+                return Result.UniversalTeamName;
             };
 
         }
+
+        public static string CheckifTeamNameAliasExists(string Alias)
+        {
+            TeamNamesModel Result;
+
+            Result = Program.TeamNamesLibrary.Find(i => i._idAlias == Alias);
+
+            if (Result is null)
+            {
+                return null;
+            }
+            else
+            {
+                return Result._idAlias;
+            };
+
+        }
+
     }
 }

@@ -18,15 +18,15 @@ namespace Scrappy2._0
     {
         private static Dictionary<string, string> smarketsUrlDict = new Dictionary<string, string>();
         private static Dictionary<string, string> customList = new Dictionary<string, string>();
-        private static int dateRange = 6; //days
+        private static int dateRange = 3; //days
         public static int pathCount = 0; //Checksum comparer.
         private static bool validate;
         private static string userInput;
 
         public static void InitiateList()
         {
-            smarketsUrlDict.Add("UEFA Champions League", "https://smarkets.com/listing/sport/football/uefa-champions-league-qualification");
-            smarketsUrlDict.Add("UEFA Europa League", "https://smarkets.com/listing/sport/football/uefa-europa-league-qualification");
+            smarketsUrlDict.Add("UEFA Champions League", "https://smarkets.com/listing/sport/football/uefa-champions-league");
+            smarketsUrlDict.Add("UEFA Europa League", "https://smarkets.com/listing/sport/football/uefa-europa-league");
             smarketsUrlDict.Add("Scotland Premiership", "https://smarkets.com/listing/sport/football/scotland-premiership");
             smarketsUrlDict.Add("England Premier League", "https://smarkets.com/listing/sport/football/england-premier-league");
             smarketsUrlDict.Add("England Championship", "https://smarkets.com/listing/sport/football/england-championship");
@@ -103,6 +103,7 @@ namespace Scrappy2._0
                 string oddsAwayXpth;
                 string dateTimeResult = "";
                 string dateTimeXpth;
+                string LeagueXpth;
 
                 //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']
 
@@ -117,10 +118,12 @@ namespace Scrappy2._0
                 oddsHomeXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items  open ')]/span[contains(@class, 'contract-item')][1]/div[contains(@class, 'current-price')]/span[contains(@class,'bid')]/span[1]";
                 oddsAwayXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items  open ')]/span[contains(@class, 'contract-item')][3]/div[contains(@class, 'current-price')]/span[contains(@class, 'bid')]/span[1]";
                 dateTimeXpth = "//ul[@class='event-list list-view  football']/li[@class='item-tile event-tile  upcoming layout-row   '][" + i + "]//div[@class ='event-date']/time";
+                //LeagueXpth = league
 
 
-                if (IsWithinDays(dateTimeXpth) <= 1000) //For Testing Purposes
-                {
+
+                //if (IsWithinDays(dateTimeXpth) <= 14) //For Testing Purposes
+                //{
                     if (AWebElement(homeTeamXpth).Text != null) //Home Team
                     {
                         homeTeam = AWebElement(homeTeamXpth).Text;
@@ -150,24 +153,39 @@ namespace Scrappy2._0
                     Console.WriteLine("HomeTeam: {0} AwayTeam: {1} oddsHome: {2} oddsAway: {3} dateTime = {4}", homeTeam, awayTeam, oddsHome, oddsAway, dateTimeResult);
 
 
-                    //Write to Database
+                    ////////////////////////// Add the match the DB
+                    
                     MongoCRUD db = new MongoCRUD("MBEdge");
+                    MatchesModel match;
 
-
-                    MatchesModel match = new MatchesModel
+                    //Check if RefTag exists
+                    if (db.CountRecordsByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult) > 0)
                     {
-                        RefTag = homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult,
-                        HomeTeamName = homeTeam.Trim(),
-                        AwayTeamName = awayTeam.Trim(),
-                        StartDateTime = dateTimeResult,
+                        match = db.LoadRecordByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult);
+                        match.SmarketsHomeOdds = oddsHome;
+                        match.SmarketsAwayOdds = oddsAway;
+                    }
+                    else
+                    {
+                        match = new MatchesModel
+                        {
 
-                        SmarketsHomeOdds = oddsHome,
-                        SmarketsAwayOdds = oddsAway
-                    };
+                            RefTag = homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult,
+                            HomeTeamName = homeTeam.Trim(),
+                            AwayTeamName = awayTeam.Trim(),
+                            StartDateTime = dateTimeResult,
 
-                    db.UpsertRecordByRefTag<MatchesModel>("matches", match, match.RefTag);
+                            SmarketsHomeOdds = oddsHome,
+                            SmarketsAwayOdds = oddsAway
 
+                           // League = leagueTitle,
 
+                        };
+                    }
+
+                    db.UpsertRecordByRefTag("matches", match, match.RefTag);
+                
+                
 
                     //Check to see if Team names are already in list. if not add them in
                     
@@ -175,8 +193,9 @@ namespace Scrappy2._0
                     {
                         TeamNamesModel TeamNamesModel = new TeamNamesModel
                         {
-                            _id = match.HomeTeamName,
-                         };
+                            _idAlias = match.HomeTeamName,
+                            UniversalTeamName = match.HomeTeamName,
+                        };
                         db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
                         
                         //Updates the internal list of team names to include any new addtions from previous scrape
@@ -188,19 +207,17 @@ namespace Scrappy2._0
                     {
                         TeamNamesModel TeamNamesModel = new TeamNamesModel
                         {
-                            _id = match.AwayTeamName,
+                            _idAlias = match.AwayTeamName,
+                            UniversalTeamName = match.AwayTeamName,
                         };
                         db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
 
                         //Updates the internal list of team names to include any new addtions from previous scrape
                         Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
                     }
-
-
-
                 }
 
-            }
+            //} DATE Time Range 
         }
 
 

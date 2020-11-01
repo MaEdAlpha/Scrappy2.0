@@ -9,8 +9,8 @@ namespace Scrappy2._0
     class TeamNamesModel
     {
         [BsonId]
-        public string _id { get; set; }
-        public string Alias { get; set; }
+        public string _idAlias { get; set; }
+        public string UniversalTeamName { get; set; }
       }
 
 }

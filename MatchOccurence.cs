@@ -230,6 +230,7 @@ namespace Scrappy2._0
             CurrentMatch.OccurrenceHome = dOccurrenceHome;
             CurrentMatch.OccurrenceAway = dOccurrenceAway;
 
+
             //                'If super sweet spot colour dark blue
             //                If dOccuranceAway< 50 Then
 

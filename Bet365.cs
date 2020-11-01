@@ -24,7 +24,7 @@ namespace Scrappy2._0
         private static int tmsCount;
         private static int pathCount;
         private static int cycleCount;
-        private const int DATERANGE = 5; //days
+        private const int DATERANGE = 3; //days
         public static void LeagueSelection()
         {
             bool validate;
@@ -188,10 +188,56 @@ namespace Scrappy2._0
                                 finalDate = ConverToDateTime(tempDate, matchDetails[0]).ToUniversalTime().ToString("dd/MM/yyyy HH:mm:ss");
                                 matchTime = ConverToDateTime(tempDate, matchDetails[0]).ToString("HH:mm");
 
+                                string ScrapedHomeTeam = matchDetails[1];
+                                string ScrapedAwayTeam = matchDetails[2];
+
+                                //Here check that the team name is in the DB as an Alias. If not open dialogue for input
+                                MongoCRUD db = new MongoCRUD("MBEdge");
+
+                                if (CheckifTeamNameAliasExists(matchDetails[1]) is null)
+                                {
+                                    //Doesn't exist so must be a new alias for an exisiting Team name. Request user input.
+                                    Console.WriteLine(" Enter the universal team name for: " + matchDetails[1]);
+                                    matchDetails[1] = Convert.ToString(Console.ReadLine());
+
+                                    TeamNamesModel TeamNamesModel = new TeamNamesModel
+                                    {
+                                        _idAlias = ScrapedHomeTeam,
+                                        UniversalTeamName = matchDetails[1],
+                                    };
+                                    db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
+
+                                    //Updates the internal list of team names to include any new addtions from previous scrape
+                                    Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
+                                }
+                                else {
+                                    matchDetails[1] = GetUniversalTeamName(matchDetails[1]);
+                                }
+
+                                if (CheckifTeamNameAliasExists(matchDetails[2]) is null)
+                                {
+                                    //Doesn't exist so must be a new alias for an exisiting Team name. Request user input.
+                                    Console.WriteLine(" Enter the universal team name for: " + matchDetails[2]);
+                                    matchDetails[2] = Convert.ToString(Console.ReadLine());
+
+                                    TeamNamesModel TeamNamesModel = new TeamNamesModel
+                                    {
+                                        _idAlias = ScrapedAwayTeam,
+                                        UniversalTeamName = matchDetails[2],
+                                    };
+                                    db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
+
+                                    //Updates the internal list of team names to include any new addtions from previous scrape
+                                    Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
+                                }
+                                else
+                                {
+                                    matchDetails[2] = GetUniversalTeamName(matchDetails[2]);
+                                }
 
                                 Console.WriteLine("\n---Date: {3} Time: {0} Home: {1} Away: {2}", matchTime, matchDetails[1], matchDetails[2], finalDate);
 
-                                MatchPath package = new MatchPath(divisionTitle, leagueTitle, matchTime, finalDate, matchDetails[1].Trim(), matchDetails[2].Trim());
+                                MatchPath package = new MatchPath(divisionTitle, leagueTitle, matchTime, finalDate, ScrapedHomeTeam, ScrapedAwayTeam);
 
                                 string index = pathCount.ToString();
                                 string forOdds = GetOddsXpath(index);
@@ -209,6 +255,9 @@ namespace Scrappy2._0
                                 Console.WriteLine("Date: {0}\n Country: {1} \n League: {2} \n mTime: {3}\n home:{4}\n away:{5} \nODDS H/D/A: {6}/{7}/{8}", finalDate, divisionTitle, leagueTitle, matchTime, matchDetails[1].Trim(), matchDetails[2].Trim(), tempHomeOdds, tempDrawOdds, tempAwayOdds);
 
                                 WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
+
+                                matchDetails[1] = ScrapedHomeTeam;
+                                matchDetails[2] = ScrapedAwayTeam;
 
                                 MatchPath matchItem = package;
                                 MatchPath.SaveXpath(matchItem);
@@ -241,23 +290,35 @@ namespace Scrappy2._0
 
         private static void WriteToDB(string leagueTitle, string tempHomeOdds, string tempDrawOdds, string tempAwayOdds, string[] matchDetails, string finalDate)
         {
-            //Set team names to be universal 
-            matchDetails[1] = GetUniversalTeamName(matchDetails[1].Trim());
-            matchDetails[2] = GetUniversalTeamName(matchDetails[2].Trim());
-
+           
             // Add the match the DB
             MongoCRUD db = new MongoCRUD("MBEdge");
-            MatchesModel match = new MatchesModel
+            MatchesModel match;
+
+            //Check if RefTag exists
+            if (db.CountRecordsByRefTag<MatchesModel>("matches", matchDetails[1].Trim() + " " + matchDetails[2].Trim() + " " + finalDate) > 0)
             {
-                RefTag = matchDetails[1].Trim() + " " + matchDetails[2].Trim() + " " + finalDate,
-                HomeTeamName = matchDetails[1].Trim(),
-                AwayTeamName = matchDetails[2].Trim(),
-                B365HomeOdds = Convert.ToDouble(tempHomeOdds),
-                B365DrawOdds = Convert.ToDouble(tempDrawOdds),
-                B365AwayOdds = Convert.ToDouble(tempAwayOdds),
-                League = leagueTitle,
-                StartDateTime = finalDate
-            };
+                match = db.LoadRecordByRefTag<MatchesModel>("matches", matchDetails[1].Trim() + " " + matchDetails[2].Trim() + " " + finalDate);
+
+                match.B365HomeOdds = Convert.ToDouble(tempHomeOdds);
+                match.B365DrawOdds = Convert.ToDouble(tempDrawOdds);
+                match.B365AwayOdds = Convert.ToDouble(tempAwayOdds);
+                match.League = leagueTitle;
+            }
+            else
+            {
+                match = new MatchesModel
+                {
+                    RefTag = matchDetails[1].Trim() + " " + matchDetails[2].Trim() + " " + finalDate,
+                    HomeTeamName = matchDetails[1].Trim(),
+                    AwayTeamName = matchDetails[2].Trim(),
+                    B365HomeOdds = Convert.ToDouble(tempHomeOdds),
+                    B365DrawOdds = Convert.ToDouble(tempDrawOdds),
+                    B365AwayOdds = Convert.ToDouble(tempAwayOdds),
+                    League = leagueTitle,
+                    StartDateTime = finalDate
+                };
+            }
 
             db.UpsertRecordByRefTag("matches", match, match.RefTag);
         }
@@ -339,8 +400,7 @@ namespace Scrappy2._0
             {
                 Debug.Write(date);
             }
-            
-            Console.WriteLine("WRONG DATETIME. Debug");
+           
             return dateconv;
         }
         public static void CollectData()
@@ -434,7 +494,8 @@ namespace Scrappy2._0
             if(homeTeam && awayTeamMatch)
             {
                 //This checks the div element that contains the inPlay clock data value. 
-                string forInPlayClock = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), " + home.Trim() + ")]/parent::div/parent::div/parent::div/parent::div/div/div[contains(@class,'Clock')]/div[contains(@class,'ClockInPlay_Extra')]";
+                string forInPlayClock = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), '" + home.Trim() + "')]/parent::div/parent::div/parent::div/parent::div/div/div[contains(@class,'Clock')]/div[contains(@class,'ClockInPlay_Extra')]";
+                //If does not retrun null, retrun true, else return false
                 bool isInPlay = AWebElement(forInPlayClock) != null ? true : false;
                 return isInPlay;
             }
@@ -465,35 +526,33 @@ namespace Scrappy2._0
 
 
             // Add the match the DB
-            BTTStoDB(GetUniversalTeamName(HomeTeamName), GetUniversalTeamName(AwayTeamName), homeOddsPath, drawOddsPath, awayOddsPath, overTwoFivePath, btsYesPath, danielsDateData);
+            BTTStoDB(GetUniversalTeamName(HomeTeamName), GetUniversalTeamName(AwayTeamName), homeOddsPath, drawOddsPath, awayOddsPath, overTwoFivePath, btsYesPath, date);
 
             Console.WriteLine("Over2.5: {0} BTS(yes): {1} Home: {2} Draw: {3} Away: {4} ", overTwoFivePath, btsYesPath, homeOddsPath, drawOddsPath, awayOddsPath);
         }
 
         private static void BTTStoDB(string HomeTeamName, string AwayTeamName, double homeOddsPath, double drawOddsPath, double awayOddsPath, double overTwoFivePath, double btsYesPath, string GameStartDate)
         {
+            
+            //////Retrieve record from DB if exists to avoid overwriting smarkets odds
+
             MongoCRUD db = new MongoCRUD("MBEdge");
+            MatchesModel match;
 
-                MatchesModel match = new MatchesModel
-                {
-                    RefTag = HomeTeamName + " " + AwayTeamName + " " + GameStartDate,
-                    HomeTeamName = HomeTeamName,
-                    AwayTeamName = AwayTeamName,
-                    B365HomeOdds = homeOddsPath,
-                    B365DrawOdds = drawOddsPath,
-                    B365AwayOdds = awayOddsPath,
-                    B365BTTSOdds = btsYesPath,
-                    B365O25GoalsOdds = overTwoFivePath,
-                    StartDateTime = GameStartDate
+            match = db.LoadRecordByRefTag<MatchesModel>("matches", HomeTeamName + " " + AwayTeamName + " " + GameStartDate);
 
-                };
+            match.B365HomeOdds = Convert.ToDouble(homeOddsPath);
+            match.B365DrawOdds = Convert.ToDouble(drawOddsPath);
+            match.B365AwayOdds = Convert.ToDouble(awayOddsPath);
+            match.B365BTTSOdds = Convert.ToDouble(btsYesPath);
+            match.B365O25GoalsOdds= Convert.ToDouble(overTwoFivePath);
 
-                //Get Occurrence of 2up based on game odds
-                MatchOccurence.GetOccurrences(match);
+            //Get Occurrence of 2up based on game odds
+            MatchOccurence.GetOccurrences(match);
+            
+            db.UpsertRecordByRefTag("matches", match, match.RefTag);
 
-                db.UpsertRecordByRefTag<MatchesModel>("matches", match, match.RefTag);
-
-            }
+        }
 
         public static void InitiateList()
         {

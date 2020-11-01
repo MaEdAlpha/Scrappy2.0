@@ -40,7 +40,7 @@ namespace Scrappy2._0
 
             while (scrapingSmarkets)
             {
-            Smarkets.ScrapeLeague();
+                Smarkets.ScrapeLeague();
             }
         }
     }
