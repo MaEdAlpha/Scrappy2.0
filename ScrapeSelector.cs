@@ -37,7 +37,7 @@ namespace Scrappy2._0
             {
                 Program.scraping365 = true;                
                 RootClass.GetRootPage("https://www.bet365.com/#/AS/B1/");
-
+              
                     if (Bet365.leagueDivisionDict.Count() == 0) 
                     {
                       Bet365.InitiateList(); 
@@ -52,6 +52,7 @@ namespace Scrappy2._0
                 //SmarketsCode Initialize
                 Program.scrapingSmarkets = true;
                 RootClass.GetRootPage("https://smarkets.com/sport/football");
+                RootClass.SetImplicitWait(10);
                 Smarkets.InitiateList();
                 Smarkets.ScrapeSelection();
             }

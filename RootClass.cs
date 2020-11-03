@@ -13,8 +13,8 @@ namespace Scrappy2._0
     {
         public static IWebDriver driver;
         public static DateTime timeZero;
-        //HOLDS THE FULL LIST OF TEAMNAMES 
 
+        
         public static void GetRootPage(string url)
         {
             ChromeOptions options = new ChromeOptions();
@@ -37,6 +37,12 @@ namespace Scrappy2._0
             driver.Navigate().GoToUrl(url);
             RandomSleep(3000);
         }
+
+        public static void SetImplicitWait(int WaitTime)
+        {   
+                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(WaitTime);
+         }
+
         public static IWebElement AWebElement(string xPath) //Return IWebElement using xPath.
         {
             try
