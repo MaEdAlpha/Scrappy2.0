@@ -103,7 +103,7 @@ namespace Scrappy2._0
                 string oddsAwayXpth;
                 string dateTimeResult = "";
                 string dateTimeXpth;
-                string LeagueXpth;
+                //string LeagueXpth;
 
                 //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']
 
