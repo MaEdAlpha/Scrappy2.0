@@ -89,6 +89,8 @@ namespace Scrappy2._0
         }
         private static void GetData()
         {
+            bool OddsLoading = true;
+
             List<IWebElement> matches = WebElements("//ul[contains(@class,'event-list list-view  football')]//li[contains(@class,'item-tile event-tile  upcoming layout-row ')]");
 
             for (int i = 1; i <= matches.Count; i++)
@@ -104,6 +106,7 @@ namespace Scrappy2._0
                 string dateTimeResult = "";
                 string dateTimeXpth;
                 string LeagueXpth;
+               
 
                 //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']
 
@@ -112,18 +115,45 @@ namespace Scrappy2._0
                 // Tick-Buy away oddsXpath
                 //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']/span[contains(@class, 'contract-item')][3]/div[@class='current-price']/span[@class ='offer']/span[1]
 
+                // Wait for the first game odds to not be empty. The try catch is to prevent an error when the elements have not loaded in time
+
+                
+                while (OddsLoading)
+                {
+                    try
+                    {
+                        //Loop until the 1st element is not null and isn't an empty string
+                        if (AWebElement("//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items')]/span[contains(@class, 'contract-item')][1]/div[contains(@class, 'current-price')]/span[contains(@class,'bid')]/span[1]").Text != null)
+                        {
+                            if (AWebElement("//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items')]/span[contains(@class, 'contract-item')][1]/div[contains(@class, 'current-price')]/span[contains(@class,'bid')]/span[1]").Text != " ")
+                            {
+                                OddsLoading = false;
+                            }
+                            else
+                            {
+                                //Check to see if the reason it is empty is because no liquidity. In this case the HTML has "empty" in a div tag
+                                if (AWebElement("//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items')]/span[contains(@class, 'contract-item')][1]/div[contains(@class, 'current-price')]/span[contains(@class,'bid')]/div[contains(@class, 'empty')]") != null) 
+                                {
+                                    Console.Write("Odds are empty for ");
+                                    OddsLoading = false;
+                                    }
+                            }
+                        }
+                    }
+                    catch 
+                    { 
+                    }
+                }
+              
                 //Home Team
                 homeTeamXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'event-info-container')]/a[contains(@class, 'title  with-score')]/div[contains(@class, 'teams')]/div[contains(@class, 'team')][1]";
                 awayTeamXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'event-info-container')]/a[contains(@class, 'title  with-score')]/div[contains(@class, 'teams')]/div[contains(@class, 'team')][2]";
-                oddsHomeXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items  open ')]/span[contains(@class, 'contract-item')][1]/div[contains(@class, 'current-price')]/span[contains(@class,'bid')]/span[1]";
-                oddsAwayXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items  open ')]/span[contains(@class, 'contract-item')][3]/div[contains(@class, 'current-price')]/span[contains(@class, 'bid')]/span[1]";
+                oddsHomeXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items')]/span[contains(@class, 'contract-item')][1]/div[contains(@class, 'current-price')]/span[contains(@class,'bid')]/span[1]";
+                oddsAwayXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items')]/span[contains(@class, 'contract-item')][3]/div[contains(@class, 'current-price')]/span[contains(@class, 'bid')]/span[1]";
                 dateTimeXpth = "//ul[@class='event-list list-view  football']/li[@class='item-tile event-tile  upcoming layout-row   '][" + i + "]//div[@class ='event-date']/time";
                 //LeagueXpth = league
 
 
-
-                //if (IsWithinDays(dateTimeXpth) <= 14) //For Testing Purposes
-                //{
                     if (AWebElement(homeTeamXpth).Text != null) //Home Team
                     {
                         homeTeam = AWebElement(homeTeamXpth).Text;
@@ -134,11 +164,19 @@ namespace Scrappy2._0
                     }
                     if (AWebElement(oddsHomeXpth) != null) // Odds -Home
                     {
-                        oddsHome = AWebElement(oddsHomeXpth).Text;
-                    }
+                    oddsHome = AWebElement(oddsHomeXpth).Text.ToUpper();
+                        if (oddsHome == "ASK" || oddsHome == " ")
+                        {
+                            oddsHome = "0";
+                        }
+                    }                    
                     if (AWebElement(oddsAwayXpth) != null) // Odds -Away
                     {
-                        oddsAway = AWebElement(oddsAwayXpth).Text;
+                    oddsAway = AWebElement(oddsAwayXpth).Text.ToUpper();
+                        if (oddsAway == "ASK" || oddsAway == " ")
+                    {
+                            oddsAway = "0";
+                        }
                     }
                     if (AWebElement(dateTimeXpth).GetAttribute("datetime") != null)
                     {
@@ -162,13 +200,50 @@ namespace Scrappy2._0
                     if (db.CountRecordsByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult) > 0)
                     {
                         match = db.LoadRecordByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult);
-                        match.SmarketsHomeOdds = oddsHome;
-                        match.SmarketsAwayOdds = oddsAway;
+
+                        //If the scraped Home odds are different to the current odds in DB add the current odds to the oddsrecord object and update the current odds.
+                        if (oddsHome != match.SmarketsHomeOdds && oddsHome != "")
+                        {
+                            OddsRecordModel OddsUpdated = new OddsRecordModel
+                            {
+                                RefTag = match.RefTag,
+                                TeamName = match.HomeTeamName,
+                                Odds = match.SmarketsHomeOdds,
+                                DateTimeStamp = DateTime.Now,
+                                OddsType = "SmarketsHome"
+                            };
+
+                            db.InsertRecord("OddsRecords", OddsUpdated);
+                         
+                            //Add a bool and set to true if either home or away was updated then if true update DB at the end
+                            match.SmarketsHomeOdds = oddsHome;
+                        }
+                       
+
+                        //If the scraped Away odds are different to the current odds in DB add the current odds to the oddsrecord object and update the current odds.
+                        if (oddsAway != match.SmarketsAwayOdds && oddsAway != "")
+                        {
+                            OddsRecordModel OddsUpdated = new OddsRecordModel
+                            {
+                                RefTag = match.RefTag,
+                                TeamName = match.AwayTeamName,
+                                Odds = match.SmarketsAwayOdds,
+                                DateTimeStamp = DateTime.Now,
+                                OddsType = "SmarketsAway"
+                            };
+
+                            db.InsertRecord("OddsRecords", OddsUpdated);
+
+                            match.SmarketsAwayOdds = oddsAway;
+                            db.UpsertRecordByRefTag("matches", match, match.RefTag);
                     }
+                           
+                       }
                     else
                     {
+                        //New game so Insert a new record 
                         match = new MatchesModel
-                        {
+                            {
 
                             RefTag = homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult,
                             HomeTeamName = homeTeam.Trim(),
@@ -179,14 +254,12 @@ namespace Scrappy2._0
                             SmarketsAwayOdds = oddsAway
 
                            // League = leagueTitle,
-
-                        };
-                    }
-
-                    db.UpsertRecordByRefTag("matches", match, match.RefTag);
                 
-                
+                            };
+                        db.UpsertRecordByRefTag("matches", match, match.RefTag);
+                }
 
+                
                     //Check to see if Team names are already in list. if not add them in
                     
                     if (GetUniversalTeamName(homeTeam) is null)

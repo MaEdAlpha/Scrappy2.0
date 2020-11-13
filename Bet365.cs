@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Operations;
 using OpenQA.Selenium;
@@ -100,19 +101,24 @@ namespace Scrappy2._0
         private static bool AccessLeagueElement(string divisionTitle, string leagueTitle)
         {
             string leagueXPath = GetLeagueXpath(divisionTitle, leagueTitle);                //Acquire Xpath to get specific leagues.
-            IWebElement leagueIWebElement = AWebElement(leagueXPath);
-
+         
+            //If the country name is accessible...
             if (IsAccessibleCheck(divisionTitle, leagueTitle))                              //Checks to see if leagues are accessible. HeadOpen class activated or not? If not, should open it.
             {
-                //Access the league.
+                //Attempt to locate the league.
+                IWebElement leagueIWebElement = AWebElement(leagueXPath);
+
                 if (leagueIWebElement != null)
                 {
+                    //Click the league
                     ClickLeagueElement(divisionTitle, leagueTitle);     //Method will bring you to list of Matches for specified league.   
                     return true;
                 } else {
+                    //League not found
                     return false;
                 }               
             }
+            //Country not found
             return false;
         }
 
@@ -336,23 +342,36 @@ namespace Scrappy2._0
         //Checks to see if headerTitle(United Kingdom...UEFA Champions League etc.. is showing it's leagues. If not expanded, it returns false. If expanded true.
         public static bool IsAccessibleCheck(string _headerTitle, string _leagueTitle)
         {
+            //Build xPath for country name
             string xPath = CheckOpenHeaderXpath(_headerTitle);
+            bool PageLoading = true;
+            IWebElement container;
 
+            //If the country name is found
             if (AWebElement(xPath) != null)
             {
                 return true;
             }
-            else // if a headerOpen class is not detected, use the GetHeaderTitleXpath() to expose leagues and return true. 
+            else 
             {
+                // if a Openheader returns nothing then use GetHeaderTitleXpath() to build an xpath locate a counrty name with a closed branch. 
                 xPath = GetHeaderTitleXpath(_headerTitle);
-                IWebElement container = AWebElement(xPath);
-                bool answer = AWebElement(xPath) != null ? true : false;
 
-                 if (container != null)
-                 {
-                   container.Click(); // opens drop down
-                   return answer;
-                 }
+                Thread.Sleep(2000);
+                //Wait for country name element to load.
+                
+                //while (PageLoading)
+                //{
+                    container = AWebElement(xPath);
+                    if (container != null)
+                    {
+                        container.Click(); // opens drop down
+                        Thread.Sleep(2000);
+                        bool answer = AWebElement(xPath) != null ? true : false;
+                        return answer;
+                    }
+                //}
+
                 return false;
             }
         }
@@ -563,9 +582,9 @@ namespace Scrappy2._0
             leagueDivisionDict.Add("England Championship", "United Kingdom");
             leagueDivisionDict.Add("England League 1", "United Kingdom");
             leagueDivisionDict.Add("England League 2", "United Kingdom");
-            leagueDivisionDict.Add("England FA Cup", "United Kingdom");
+            //leagueDivisionDict.Add("England FA Cup", "United Kingdom");
             //leagueDivisionDict.Add("England EFL Cup", "United Kingdom");
-            leagueDivisionDict.Add("Scottish Premiership", "United Kingdom");
+            //leagueDivisionDict.Add("Scottish Premiership", "United Kingdom");
             //leagueDivisionDict.Add("Spanish Primera Liga", "Spain");
             leagueDivisionDict.Add("Spain Primera Liga", "Spain");
             leagueDivisionDict.Add("Germany Bundesliga I", "Germany");

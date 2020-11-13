@@ -35,6 +35,7 @@ namespace Scrappy2._0
                     Bet365.DisplaySummary();
                 while(bttsEnabled && pathListPopulated) {
                     Bet365.CollectData();
+                    pathListPopulated = false;
                 }
             }
 

@@ -26,5 +26,19 @@ namespace Scrappy2._0
             public double OccurrenceAway { get; set; }
 
     }
-   
-}
+
+    class OddsRecordModel
+    {
+        [BsonId]
+        public Guid Id { get; set; }
+        public string RefTag { get; set; }
+        public string TeamName { get; set; }
+        public string OddsType { get; set; }
+        public string Odds { get; set; }
+        public DateTime DateTimeStamp { get; set; }
+    }
+
+
+    }
+
+
