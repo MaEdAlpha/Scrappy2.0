@@ -106,7 +106,7 @@ namespace Scrappy2._0
                 string dateTimeResult = "";
                 string dateTimeXpth;
                 string LeagueXpth;
-               
+
 
                 //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']
 
@@ -117,8 +117,8 @@ namespace Scrappy2._0
 
                 // Wait for the first game odds to not be empty. The try catch is to prevent an error when the elements have not loaded in time
 
-                
-                while (OddsLoading)
+
+                do
                 {
                     try
                     {
@@ -132,19 +132,20 @@ namespace Scrappy2._0
                             else
                             {
                                 //Check to see if the reason it is empty is because no liquidity. In this case the HTML has "empty" in a div tag
-                                if (AWebElement("//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items')]/span[contains(@class, 'contract-item')][1]/div[contains(@class, 'current-price')]/span[contains(@class,'bid')]/div[contains(@class, 'empty')]") != null) 
+                                if (AWebElement("//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items')]/span[contains(@class, 'contract-item')][1]/div[contains(@class, 'current-price')]/span[contains(@class,'bid')]/div[contains(@class, 'empty')]") != null)
                                 {
                                     Console.Write("Odds are empty for ");
                                     OddsLoading = false;
-                                    }
+                                }
                             }
                         }
                     }
-                    catch 
-                    { 
+                    catch(StaleElementReferenceException)
+                    {
+                        Console.Write("--------------STALE ELEMENTO");
                     }
-                }
-              
+                } while (OddsLoading);
+
                 //Home Team
                 homeTeamXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'event-info-container')]/a[contains(@class, 'title  with-score')]/div[contains(@class, 'teams')]/div[contains(@class, 'team')][1]";
                 awayTeamXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'event-info-container')]/a[contains(@class, 'title  with-score')]/div[contains(@class, 'teams')]/div[contains(@class, 'team')][2]";

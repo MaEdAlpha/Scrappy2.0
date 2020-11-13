@@ -52,7 +52,7 @@ namespace Scrappy2._0
                 //SmarketsCode Initialize
                 Program.scrapingSmarkets = true;
                 RootClass.GetRootPage("https://smarkets.com/sport/football");
-                //RootClass.SetImplicitWait(7);
+                RootClass.SetImplicitWait(7);
                 Smarkets.InitiateList();
                 Smarkets.ScrapeSelection();
             }
