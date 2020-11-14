@@ -18,10 +18,10 @@ namespace Scrappy2._0
     {
         private static Dictionary<string, string> smarketsUrlDict = new Dictionary<string, string>();
         private static Dictionary<string, string> customList = new Dictionary<string, string>();
-        private static int dateRange = 3; //days
         public static int pathCount = 0; //Checksum comparer.
         private static bool validate;
         private static string userInput;
+
 
         public static void InitiateList()
         {
@@ -106,7 +106,7 @@ namespace Scrappy2._0
                 string oddsAwayXpth;
                 string dateTimeResult = "";
                 string dateTimeXpth;
-                string LeagueXpth;
+
 
 
                 //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']

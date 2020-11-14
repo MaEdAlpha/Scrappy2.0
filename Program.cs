@@ -12,6 +12,7 @@ namespace Scrappy2._0
         public static bool scrapingSmarkets = false;
         public static bool bttsEnabled = false;
         public static bool pathListPopulated = false;
+        private static int loop;
         public static List <TeamNamesModel> TeamNamesLibrary;
 
         //Lookup array of team names keyvalue and secondary value. Used throughout.
@@ -30,13 +31,19 @@ namespace Scrappy2._0
             }
 
             while (scraping365) {
-                    RootClass.SetImplicitWait(5);
+                    loop = 0;
+                    RootClass.SetImplicitWait(2);
                     Bet365.Scrape();
                     pathListPopulated = true;
                     Bet365.DisplaySummary();
                 while(bttsEnabled && pathListPopulated) {
                     Bet365.CollectData();
-                    pathListPopulated = false;
+                    loop++;
+                    if(loop > 5)
+                    {
+                        MatchPath.ResetList(); // Otherwise we build off of this. 
+                        pathListPopulated = false;
+                    }
                 }
             }
 

@@ -20,11 +20,10 @@ namespace Scrappy2._0
     {
         public static Dictionary<string, string> leagueDivisionDict = new Dictionary<string, string>();
         public static Dictionary<string, string> customList = new Dictionary<string, string>();
-        private static List<string> countries = new List<string>();
+        private static readonly List<string> countries = new List<string>();
         private static int masterCount;
         private static int tmsCount;
         private static int pathCount;
-        private static int cycleCount;
         private const int DATERANGE = 3; //days
         public static void LeagueSelection()
         {
@@ -74,7 +73,6 @@ namespace Scrappy2._0
 
         public static void Scrape()
         {
-            cycleCount = 0;
             //Take first item in list and see if country's class element is open. 
             Dictionary<string, string> cycleList = customList.Count == 0 ? leagueDivisionDict : customList;
 
@@ -242,7 +240,6 @@ namespace Scrappy2._0
 
                                 Console.WriteLine("\n---Date: {3} Time: {0} Home: {1} Away: {2}", matchTime, matchDetails[1], matchDetails[2], finalDate);
 
-                                MatchPath package = new MatchPath(divisionTitle, leagueTitle, matchTime, finalDate, ScrapedHomeTeam, ScrapedAwayTeam);
 
                                 //First check to see if any matches are postponed. If they are, get the index number in which they reside in.
                                 //Pass an array of all existing indexes to act as identifiers where postponed match divs exist. 
@@ -270,17 +267,26 @@ namespace Scrappy2._0
                                     tempHomeOdds = filteredOddsResults[pathCount];
                                     tempDrawOdds = filteredOddsResults[((filteredOddsResults.Count / 3)) + pathCount];
                                     tempAwayOdds = filteredOddsResults[((filteredOddsResults.Count / 3 * 2)) + pathCount];
+                                    
                                 }
 
                                 Console.WriteLine("Date: {0}\n Country: {1} \n League: {2} \n mTime: {3}\n home:{4}\n away:{5} \nODDS H/D/A: {6}/{7}/{8}", finalDate, divisionTitle, leagueTitle, matchTime, matchDetails[1].Trim(), matchDetails[2].Trim(), tempHomeOdds, tempDrawOdds, tempAwayOdds);
+                                MatchPath package = new MatchPath(divisionTitle, leagueTitle, matchTime, finalDate, ScrapedHomeTeam, ScrapedAwayTeam, null);
+                                if(tempHomeOdds == "999")
+                                {
+                                    package.isPostponed = true;
+                                }
+                                else
+                                {
+                                    package.isPostponed = false;
+                                }
 
                                 WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
 
                                 matchDetails[1] = ScrapedHomeTeam;
                                 matchDetails[2] = ScrapedAwayTeam;
 
-                                MatchPath matchItem = package;
-                                MatchPath.SaveXpath(matchItem);
+                                MatchPath.SaveXpath(package);
 
                                 leagueMatchCount++;
                                 pathCount++;
@@ -332,7 +338,7 @@ namespace Scrappy2._0
                     else if (allOddFixtures[i].Text.Length > 4 || allOddFixtures[i].Text.Length == 0)
                     {
                         indexFilterList.Add("999");
-                        Console.Write(i + " Postponed\n");
+                        //Console.Write(i + " Postponed\n");
 
                     }
                     else if (allOddFixtures[i].Text.Length == 4)
@@ -341,7 +347,7 @@ namespace Scrappy2._0
                         //div[contains(@class, 'sgl-MarketOddsExpand gl-Market_General gl-Market_General-columnheader ')]/div[contains(@class,'postponed')]
                         //Add this to your list.
                         indexFilterList.Add(allOddFixtures[i].Text);
-                        Console.Write(i + " " + allOddFixtures[i].Text + " " + allOddFixtures[i].Text.Count() + "\n");
+                        //Console.Write(i + " " + allOddFixtures[i].Text + " " + allOddFixtures[i].Text.Count() + "\n");
                         //Check to see if div has actual number.
                     }
                     else
@@ -404,7 +410,6 @@ namespace Scrappy2._0
         {
             //Build xPath for country name
             string xPath = CheckOpenHeaderXpath(_headerTitle);
-            bool PageLoading = true;
             IWebElement container;
 
             //If the country name is found
@@ -461,7 +466,7 @@ namespace Scrappy2._0
             string dayInt = dateString.Substring(4, 2);
             string month = dateString.Substring(7, 3);
             DateTime dateconv = DateTime.Now;
-            var offset = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
+            var offset = TimeZoneInfo.Local.GetUtcOffset(DateTime.Now);
 
             if (month != "Jan")
             {
@@ -477,20 +482,17 @@ namespace Scrappy2._0
             }
             catch (Exception)
             {
-                Debug.Write(date);
             }
            
             return dateconv;
         }
         public static void CollectData()
         {
-            List<MatchPath> directoryList = new List<MatchPath>();
             List<MatchPath> clonedDirectory = new List<MatchPath>(); //Initialize a new list
             
-            directoryList = MatchPath.GetXpathList();
-            clonedDirectory = directoryList; //create a copy.
+            clonedDirectory = MatchPath.GetXpathList();
 
-            Console.WriteLine("\n Collecting Data for {0} matches...", directoryList.Count());
+            Console.WriteLine("\n Collecting Data for {0} matches...", clonedDirectory.Count());
 
             //Create an inefficient way to travel to these pages. Humanizes the URL navigation
              Shuffle(clonedDirectory);
@@ -506,42 +508,50 @@ namespace Scrappy2._0
                 string awayTeam = clonedDirectory[i].awayT;
 
                 RandomSleep(1112);
-                AccessLeagueElement(divisionTitle, leagueTitle); //Brings you to current list of matches for specified league.
-                //Access specific match detail, then bring back to the root page. 
-
-                if(InPlay(homeTeam, awayTeam))
+                if(clonedDirectory[i].isPostponed != true)
                 {
-                    Console.Write("\n {0} & {1} is InPlay. Do Nothing \n", homeTeam, awayTeam);
-                    RandomSleep(512);
-                    driver.Navigate().Back() ;
-                } else {
-                    RandomSleep(1312);
-                    //Find Match
+                    AccessLeagueElement(divisionTitle, leagueTitle); //Brings you to current list of matches for specified league.
+                                                                     //Access specific match detail, then bring back to the root page. 
 
-                    string xPathHome = GetMatchXpath(homeTeam); // get xPath for homeT
-                    string xPathAway = GetMatchXpath(awayTeam); ; // get xPath for awayT
-
-                    IWebElement matchDetails = AWebElement(xPathHome);
-                    string webHome = matchDetails.Text.Trim();
-                    string webAway = AWebElement(xPathAway).Text.Trim();
-                    //string webDate = AWebElement(xPathDate).Text.Trim();
-
-                    if (webHome == homeTeam && awayTeam == webAway)
+                    if (InPlay(homeTeam, awayTeam))
                     {
-                        Console.WriteLine("\n Entered a match!");
-                        matchDetails.Click();
-                        RandomSleep(721);
-                        GrabBTTSData(webHome, webAway, clonedDirectory[i].date, clonedDirectory[i].mTime);
-                        RandomSleep(500);
-                        driver.Navigate().Back();
-                        RandomSleep(1030);
+                        Console.Write("\n {0} & {1} is InPlay. Do Nothing \n", homeTeam, awayTeam);
+                        RandomSleep(512);
                         driver.Navigate().Back();
                     }
                     else
                     {
-                        driver.Navigate().Back();
+                        RandomSleep(1312);
+                        //Find Match
+
+                        string xPathHome = GetMatchXpath(homeTeam); // get xPath for homeT
+                        string xPathAway = GetMatchXpath(awayTeam); ; // get xPath for awayT
+
+                        IWebElement matchDetails = AWebElement(xPathHome);
+                        string webHome = matchDetails.Text.Trim();
+                        string webAway = AWebElement(xPathAway).Text.Trim();
+                        //string webDate = AWebElement(xPathDate).Text.Trim();
+
+                        if (webHome == homeTeam && awayTeam == webAway)
+                        {
+                            Console.WriteLine("\n Entered a match: {0} vs {1} \n", clonedDirectory[i].homeT, clonedDirectory[i].awayT );
+                            matchDetails.Click();
+                            RandomSleep(721);
+                            GrabBTTSData(webHome, webAway, clonedDirectory[i].date, clonedDirectory[i].mTime);
+                            RandomSleep(500);
+                            driver.Navigate().Back();
+                            RandomSleep(1030);
+                            driver.Navigate().Back();
+                        }
+                        else
+                        {
+                            driver.Navigate().Back();
+                        }
                     }
-                }
+                }else
+                {
+                    Console.WriteLine("\n" + clonedDirectory[i].homeT + " vs " + clonedDirectory[i].awayT + " :POSTPONED. Skipping.... \n");
+                }              
             }
         }
 
@@ -607,7 +617,7 @@ namespace Scrappy2._0
             // Add the match the DB
             BTTStoDB(GetUniversalTeamName(HomeTeamName), GetUniversalTeamName(AwayTeamName), homeOddsPath, drawOddsPath, awayOddsPath, overTwoFivePath, btsYesPath, date);
 
-            Console.WriteLine("Over2.5: {0} BTS(yes): {1} Home: {2} Draw: {3} Away: {4} ", overTwoFivePath, btsYesPath, homeOddsPath, drawOddsPath, awayOddsPath);
+            Console.WriteLine("Over 2.5: {0} BTS(Y): {1} Home: {2} Draw: {3} Away: {4} \n", overTwoFivePath, btsYesPath, homeOddsPath, drawOddsPath, awayOddsPath);
         }
 
         private static void BTTStoDB(string HomeTeamName, string AwayTeamName, double homeOddsPath, double drawOddsPath, double awayOddsPath, double overTwoFivePath, double btsYesPath, string GameStartDate)
