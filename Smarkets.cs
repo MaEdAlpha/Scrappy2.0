@@ -84,6 +84,7 @@ namespace Scrappy2._0
             {
                 driver.Navigate().GoToUrl(league.Value);
                 Thread.Sleep(2500);
+                SetImplicitWait(7);
                 GetData();
             }
         }
