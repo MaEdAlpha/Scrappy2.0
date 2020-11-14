@@ -30,6 +30,7 @@ namespace Scrappy2._0
             }
 
             while (scraping365) {
+                    RootClass.SetImplicitWait(5);
                     Bet365.Scrape();
                     pathListPopulated = true;
                     Bet365.DisplaySummary();

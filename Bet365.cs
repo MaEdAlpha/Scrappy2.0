@@ -172,9 +172,7 @@ namespace Scrappy2._0
                         //Gets IWebElement within specified day range.
                         if (MatchDateRange(matchWebElement) <= dayRange && (matchWebElement.Text.StartsWith("Mon") || matchWebElement.Text.StartsWith("Tue") || matchWebElement.Text.StartsWith("Wed") || matchWebElement.Text.StartsWith("Thu") || matchWebElement.Text.StartsWith("Fri") || matchWebElement.Text.StartsWith("Sat") || matchWebElement.Text.StartsWith("Sun")))
                         {
-
                             tempDate = matchWebElement.Text;
-
                         }
                         //Breaks from looop when it finds date range out of spec
                         else if (MatchDateRange(matchWebElement) > dayRange && (matchWebElement.Text.StartsWith("Mon") || matchWebElement.Text.StartsWith("Tue") || matchWebElement.Text.StartsWith("Wed") || matchWebElement.Text.StartsWith("Thu") || matchWebElement.Text.StartsWith("Fri") || matchWebElement.Text.StartsWith("Sat") || matchWebElement.Text.StartsWith("Sun")))
@@ -184,7 +182,7 @@ namespace Scrappy2._0
                         //Match Time
                         else if (matchWebElement.Text.Contains(":"))
                         {
-                            pathCount++;
+                            
 
                             if (ScrapeThisMatch(pathCount))
                             {
@@ -216,7 +214,8 @@ namespace Scrappy2._0
                                     //Updates the internal list of team names to include any new addtions from previous scrape
                                     Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
                                 }
-                                else {
+                                else
+                                {
                                     matchDetails[1] = GetUniversalTeamName(matchDetails[1]);
                                 }
 
@@ -245,19 +244,34 @@ namespace Scrappy2._0
 
                                 MatchPath package = new MatchPath(divisionTitle, leagueTitle, matchTime, finalDate, ScrapedHomeTeam, ScrapedAwayTeam);
 
-                                string index = pathCount.ToString();
+                                //First check to see if any matches are postponed. If they are, get the index number in which they reside in.
+                                //Pass an array of all existing indexes to act as identifiers where postponed match divs exist. 
+
+                                List<string> filteredOddsResults = GetStuffedB365(); //Checks for postponed matches
+
+                                string index = (pathCount + 1).ToString(); //pathCount is a tracker for what match we are on. Postponed matches are still part of this list. We need to determine a way to detect them.
+                                                                     //Compare this index string to the filtered ShoveItB365Odds() array. If index == elm.index && elm[index] == null (postponed match) do nothing. 
+
+
                                 string forOdds = GetOddsXpath(index);
                                 List<IWebElement> oddsList = WebElements(forOdds);
 
                                 //DebugPrintOdds(oddsList);
 
-                                tmsCount++;
+                                if(filteredOddsResults == null)
+                                {
+                                    tempHomeOdds = oddsList[pathCount - 1].Text;
+                                    tempDrawOdds = oddsList[((oddsList.Count / 3) - 1) + pathCount].Text;
+                                    tempAwayOdds = oddsList[((oddsList.Count / 3 * 2) - 1) + pathCount].Text;
+                                    //Console.WriteLine("In non Postponed odds write");
+                                }
+                                else
+                                {
+                                    tempHomeOdds = filteredOddsResults[pathCount];
+                                    tempDrawOdds = filteredOddsResults[((filteredOddsResults.Count / 3)) + pathCount];
+                                    tempAwayOdds = filteredOddsResults[((filteredOddsResults.Count / 3 * 2)) + pathCount];
+                                }
 
-                                tempHomeOdds = oddsList[pathCount - 1].Text;
-                                tempDrawOdds = oddsList[((oddsList.Count / 3) - 1) + pathCount].Text;
-                                tempAwayOdds = oddsList[((oddsList.Count / 3 * 2) - 1) + pathCount].Text;
-
-                                
                                 Console.WriteLine("Date: {0}\n Country: {1} \n League: {2} \n mTime: {3}\n home:{4}\n away:{5} \nODDS H/D/A: {6}/{7}/{8}", finalDate, divisionTitle, leagueTitle, matchTime, matchDetails[1].Trim(), matchDetails[2].Trim(), tempHomeOdds, tempDrawOdds, tempAwayOdds);
 
                                 WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
@@ -269,7 +283,9 @@ namespace Scrappy2._0
                                 MatchPath.SaveXpath(matchItem);
 
                                 leagueMatchCount++;
+                                pathCount++;
                                 masterCount++;
+                                tmsCount++;
                             }
                         }
                     }
@@ -292,6 +308,50 @@ namespace Scrappy2._0
                     driver.Navigate().Back();
                 }
             }
+        }
+
+        private static List<string> GetStuffedB365()
+        {
+            if (AWebElement("//div[contains(@class, 'postponed')]") != null) //see if this page has any postponed matches
+            {
+                List<IWebElement> allOddFixtures = WebElements("//div[contains(@class, 'sgl-MarketOddsExpand gl-Market_General gl-Market_General-columnheader ')]/div");
+                int totalElm = allOddFixtures.Count(); // gives you total count. We will later divide by 3, to get the total rows in each column of '1' 'X' '2'.
+                List<string> indexFilterList = new List<string>();
+
+                for (int i = 0; i < totalElm; i++)
+                {
+                    //Xpath for condition where '1' 'X' '2' exist.
+                    if (allOddFixtures[i].Text.Length == 1)
+                    {
+                        //div[contains(@class, 'sgl-MarketOddsExpand gl-Market_General gl-Market_General-columnheader ')]/div[contains(@class,'rcl-MarketColumnHeader ')]
+                        //div[contains(@class, 'sgl-MarketOddsExpand gl-Market_General gl-Market_General-columnheader ')]/div[contains(@class,'rcl-MarketHeaderLabel ')]
+                        //Do Nothing
+                        //Exclude these from your list.
+                    }
+                    //Check to see if div has null or texts "Match Postponed". 
+                    else if (allOddFixtures[i].Text.Length > 4 || allOddFixtures[i].Text.Length == 0)
+                    {
+                        indexFilterList.Add("999");
+                        Console.Write(i + " Postponed\n");
+
+                    }
+                    else if (allOddFixtures[i].Text.Length == 4)
+                    {
+                        //Xpath;
+                        //div[contains(@class, 'sgl-MarketOddsExpand gl-Market_General gl-Market_General-columnheader ')]/div[contains(@class,'postponed')]
+                        //Add this to your list.
+                        indexFilterList.Add(allOddFixtures[i].Text);
+                        Console.Write(i + " " + allOddFixtures[i].Text + " " + allOddFixtures[i].Text.Count() + "\n");
+                        //Check to see if div has actual number.
+                    }
+                    else
+                    {
+                        Debug.Print("Something Unaccounted in GetStuffedBet365()");
+                    }
+                }
+                return indexFilterList;
+            }
+            return null; //if no postponed matches exist, return a null list to be used in if else statement for getting odds.
         }
 
         private static void WriteToDB(string leagueTitle, string tempHomeOdds, string tempDrawOdds, string tempAwayOdds, string[] matchDetails, string finalDate)
