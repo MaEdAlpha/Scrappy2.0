@@ -22,8 +22,8 @@ namespace Scrappy2._0
             ScrapeSelector valueOf = new ScrapeSelector(); //First selection user makes. Passed into HandleSelection.
             //clientDb = new MongoClient("mongodb + srv://Randy:M7bkD0xFr91G0DfA@clusterme.lfzcj.mongodb.net/matchEdge?retryWrites=true&w=majority");
 
-            MongoCRUD db = new MongoCRUD("MBEdge");
-            TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
+           RootClass.CreateDatabaseConnection();
+            TeamNamesLibrary = RootClass.db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
 
             while (settingUp) { 
                     ScrapeSelector.HandleSelection(valueOf.SelectedSite());

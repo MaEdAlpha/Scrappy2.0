@@ -155,6 +155,7 @@ namespace Scrappy2._0
                 string tempAwayOdds;
                 string matchTime;
                 pathCount = 0;
+                bool OddsChanged = false;
 
                 Console.Write("\n Building Directory {0}", leagueTitle);
                 RandomSleep(1500);
@@ -180,10 +181,10 @@ namespace Scrappy2._0
                         //Match Time
                         else if (matchWebElement.Text.Contains(":"))
                         {
-                            
-
+                          
                             if (ScrapeThisMatch(pathCount))
                             {
+                               
                                 string item = matchWebElement.Text;
                                 string[] matchDetails = matchWebElement.Text.Split("\r\n");
 
@@ -193,9 +194,7 @@ namespace Scrappy2._0
                                 string ScrapedHomeTeam = matchDetails[1];
                                 string ScrapedAwayTeam = matchDetails[2];
 
-                                //Here check that the team name is in the DB as an Alias. If not open dialogue for input
-                                MongoCRUD db = new MongoCRUD("MBEdge");
-
+                               
                                 if (CheckifTeamNameAliasExists(matchDetails[1]) is null)
                                 {
                                     //Doesn't exist so must be a new alias for an exisiting Team name. Request user input.
@@ -257,9 +256,9 @@ namespace Scrappy2._0
 
                                 if(filteredOddsResults == null)
                                 {
-                                    tempHomeOdds = oddsList[pathCount - 1].Text;
-                                    tempDrawOdds = oddsList[((oddsList.Count / 3) - 1) + pathCount].Text;
-                                    tempAwayOdds = oddsList[((oddsList.Count / 3 * 2) - 1) + pathCount].Text;
+                                    tempHomeOdds = oddsList[pathCount].Text;
+                                    tempDrawOdds = oddsList[((oddsList.Count / 3)) + pathCount].Text;
+                                    tempAwayOdds = oddsList[((oddsList.Count / 3 * 2)) + pathCount].Text;
                                     //Console.WriteLine("In non Postponed odds write");
                                 }
                                 else
@@ -281,17 +280,76 @@ namespace Scrappy2._0
                                     package.isPostponed = false;
                                 }
 
-                                WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
+                                //Get match from DB. If odds have changed update and add a record to OddsRecords table. 
+                                MatchesModel match;
 
-                                matchDetails[1] = ScrapedHomeTeam;
-                                matchDetails[2] = ScrapedAwayTeam;
+                                //Check if RefTag exists
+                                if (db.CountRecordsByRefTag<MatchesModel>("matches", matchDetails[1].Trim() + " " + matchDetails[2].Trim() + " " + finalDate) > 0)
+                                {
+                                    match = db.LoadRecordByRefTag<MatchesModel>("matches", matchDetails[1].Trim() + " " + matchDetails[2].Trim() + " " + finalDate);
 
-                                MatchPath.SaveXpath(package);
+                                    //If the scraped Home odds are different to the current odds in DB add the current odds to the oddsrecord object and update the current odds.
+                                    if (Convert.ToDouble(tempHomeOdds) != match.B365HomeOdds && tempHomeOdds != "")
+                                    {
+                                        OddsRecordModel OddsUpdated = new OddsRecordModel
+                                        {
+                                            RefTag = match.RefTag,
+                                            TeamName = match.HomeTeamName,
+                                            Odds = tempHomeOdds,
+                                            DateTimeStamp = DateTime.Now,
+                                            OddsType = "B365Home"
+                                        };
 
-                                leagueMatchCount++;
-                                pathCount++;
-                                masterCount++;
-                                tmsCount++;
+                                        db.InsertRecord("OddsRecords", OddsUpdated);
+
+                                        match.B365HomeOdds = Convert.ToDouble(tempHomeOdds);
+                                        OddsChanged = true;
+                                    }
+
+                                    //If the scraped Away odds are different to the current odds in DB add the current odds to the oddsrecord object and update the current odds.
+                                    if (Convert.ToDouble(tempAwayOdds) != match.B365AwayOdds && tempAwayOdds != "")
+                                    {
+                                        OddsRecordModel OddsUpdated = new OddsRecordModel
+                                        {
+                                            RefTag = match.RefTag,
+                                            TeamName = match.AwayTeamName,
+                                            Odds = tempAwayOdds,
+                                            DateTimeStamp = DateTime.Now,
+                                            OddsType = "B365Away"
+                                        };
+
+                                        db.InsertRecord("OddsRecords", OddsUpdated);
+
+                                        match.B365AwayOdds = Convert.ToDouble(tempAwayOdds);
+                                        OddsChanged = true;
+                                    }
+
+                                    if (OddsChanged == true)
+                                    {
+                                        //If the odds changed update the database else no need
+                                        WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
+                                        
+                                        //Reset odds changed variable
+                                        OddsChanged = false;
+                                    }
+                                }
+                                else
+                                {
+                                    WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
+                                }
+
+                            /////////////////////////////////////////////////////////////////
+
+
+                            matchDetails[1] = ScrapedHomeTeam;
+                            matchDetails[2] = ScrapedAwayTeam;
+
+                            MatchPath.SaveXpath(package);
+
+                            leagueMatchCount++;
+                            pathCount++;
+                            masterCount++;
+                            tmsCount++;
                             }
                         }
                     }
@@ -363,8 +421,6 @@ namespace Scrappy2._0
         private static void WriteToDB(string leagueTitle, string tempHomeOdds, string tempDrawOdds, string tempAwayOdds, string[] matchDetails, string finalDate)
         {
            
-            // Add the match the DB
-            MongoCRUD db = new MongoCRUD("MBEdge");
             MatchesModel match;
 
             //Check if RefTag exists
@@ -623,9 +679,8 @@ namespace Scrappy2._0
         private static void BTTStoDB(string HomeTeamName, string AwayTeamName, double homeOddsPath, double drawOddsPath, double awayOddsPath, double overTwoFivePath, double btsYesPath, string GameStartDate)
         {
             
-            //////Retrieve record from DB if exists to avoid overwriting smarkets odds
+            //////Retrieve record from DB if exists 
 
-            MongoCRUD db = new MongoCRUD("MBEdge");
             MatchesModel match;
 
             match = db.LoadRecordByRefTag<MatchesModel>("matches", HomeTeamName + " " + AwayTeamName + " " + GameStartDate);

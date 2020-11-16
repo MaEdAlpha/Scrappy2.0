@@ -106,7 +106,7 @@ namespace Scrappy2._0
                 string oddsAwayXpth;
                 string dateTimeResult = "";
                 string dateTimeXpth;
-
+                bool OddsChanged = false;
 
 
                 //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']
@@ -195,7 +195,6 @@ namespace Scrappy2._0
 
                     ////////////////////////// Add the match the DB
                     
-                    MongoCRUD db = new MongoCRUD("MBEdge");
                     MatchesModel match;
 
                     //Check if RefTag exists
@@ -210,15 +209,15 @@ namespace Scrappy2._0
                             {
                                 RefTag = match.RefTag,
                                 TeamName = match.HomeTeamName,
-                                Odds = match.SmarketsHomeOdds,
+                                Odds = oddsHome,
                                 DateTimeStamp = DateTime.Now,
                                 OddsType = "SmarketsHome"
                             };
 
                             db.InsertRecord("OddsRecords", OddsUpdated);
                          
-                            //Add a bool and set to true if either home or away was updated then if true update DB at the end
                             match.SmarketsHomeOdds = oddsHome;
+                            OddsChanged = true;
                         }
                        
 
@@ -229,7 +228,7 @@ namespace Scrappy2._0
                             {
                                 RefTag = match.RefTag,
                                 TeamName = match.AwayTeamName,
-                                Odds = match.SmarketsAwayOdds,
+                                Odds = oddsAway,
                                 DateTimeStamp = DateTime.Now,
                                 OddsType = "SmarketsAway"
                             };
@@ -237,10 +236,14 @@ namespace Scrappy2._0
                             db.InsertRecord("OddsRecords", OddsUpdated);
 
                             match.SmarketsAwayOdds = oddsAway;
-                            db.UpsertRecordByRefTag("matches", match, match.RefTag);
+                            OddsChanged = true;
+
+                        }
+                            if (OddsChanged == true)
+                            {
+                                db.UpsertRecordByRefTag("matches", match, match.RefTag);
+                            }
                     }
-                           
-                       }
                     else
                     {
                         //New game so Insert a new record 

@@ -13,8 +13,8 @@ namespace Scrappy2._0
     {
         public static IWebDriver driver;
         public static DateTime timeZero;
+        public static MongoCRUD db;
 
-        
         public static void GetRootPage(string url)
         {
             ChromeOptions options = new ChromeOptions();
@@ -38,7 +38,13 @@ namespace Scrappy2._0
             RandomSleep(3000);
         }
 
-        public static void SetImplicitWait(int WaitTime)
+        public static void CreateDatabaseConnection()
+        {
+            db = new MongoCRUD("MBEdge");
+        }
+    
+
+    public static void SetImplicitWait(int WaitTime)
         {   
                 driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(WaitTime);
          }
