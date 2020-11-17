@@ -22,7 +22,6 @@ namespace Scrappy2._0
         private static bool validate;
         private static string userInput;
 
-
         public static void InitiateList()
         {
             smarketsUrlDict.Add("UEFA Champions League", "https://smarkets.com/listing/sport/football/uefa-champions-league");
@@ -107,18 +106,6 @@ namespace Scrappy2._0
                 string dateTimeResult = "";
                 string dateTimeXpth;
                 bool OddsChanged = false;
-
-
-                //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']
-
-                // Tick-Buy home oddsXpath
-                //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']/span[contains(@class, 'contract-item')][1]/div[@class='current-price']/span[@class ='offer']/span[1]
-                // Tick-Buy away oddsXpath
-                //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']/span[contains(@class, 'contract-item')][3]/div[@class='current-price']/span[@class ='offer']/span[1]
-
-                // Wait for the first game odds to not be empty. The try catch is to prevent an error when the elements have not loaded in time
-
-
                 do
                 {
                     try
@@ -155,147 +142,141 @@ namespace Scrappy2._0
                 dateTimeXpth = "//ul[@class='event-list list-view  football']/li[@class='item-tile event-tile  upcoming layout-row   '][" + i + "]//div[@class ='event-date']/time";
                 //LeagueXpth = league
 
-
-                    if (AWebElement(homeTeamXpth).Text != null) //Home Team
-                    {
-                        homeTeam = AWebElement(homeTeamXpth).Text;
-                    }
-                    if (AWebElement(awayTeamXpth).Text != null) //Away Team
-                    {
-                        awayTeam = AWebElement(awayTeamXpth).Text;
-                    }
-                    if (AWebElement(oddsHomeXpth) != null) // Odds -Home
-                    {
-                    oddsHome = AWebElement(oddsHomeXpth).Text.ToUpper();
-                        if (oddsHome == "ASK" || oddsHome == " ")
+                if (IsWithinDays(dateTimeXpth) <= 72) // if Xpath DateTime is less than specified time (hours)
+                {
+                        if (AWebElement(homeTeamXpth).Text != null) //Home Team
                         {
-                            oddsHome = "0";
+                            homeTeam = AWebElement(homeTeamXpth).Text;
                         }
-                    }                    
-                    if (AWebElement(oddsAwayXpth) != null) // Odds -Away
-                    {
-                    oddsAway = AWebElement(oddsAwayXpth).Text.ToUpper();
-                        if (oddsAway == "ASK" || oddsAway == " ")
-                    {
-                            oddsAway = "0";
-                        }
-                    }
-                    if (AWebElement(dateTimeXpth).GetAttribute("datetime") != null)
-                    {
-                        dateTimeResult = AWebElement(dateTimeXpth).GetAttribute("datetime").Trim('Z').Replace("T", " ");                
-                        DateTime date = DateTime.Parse(dateTimeResult);
-                        dateTimeResult = date.ToString("dd/MM/yyyy HH:mm:ss");
-                        //10 - 25 - 2020 15:00:00 Smarkets
-                        //10 - 24 - 2020 21:00:00
-
-                    }
-
-                    Console.WriteLine("HomeTeam: {0} AwayTeam: {1} oddsHome: {2} oddsAway: {3} dateTime = {4}", homeTeam, awayTeam, oddsHome, oddsAway, dateTimeResult);
-
-
-                    ////////////////////////// Add the match the DB
-                    
-                    MatchesModel match;
-
-                    //Check if RefTag exists
-                    if (db.CountRecordsByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult) > 0)
-                    {
-                        match = db.LoadRecordByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult);
-
-                        //If the scraped Home odds are different to the current odds in DB add the current odds to the oddsrecord object and update the current odds.
-                        if (oddsHome != match.SmarketsHomeOdds && oddsHome != "")
+                        if (AWebElement(awayTeamXpth).Text != null) //Away Team
                         {
-                            OddsRecordModel OddsUpdated = new OddsRecordModel
+                            awayTeam = AWebElement(awayTeamXpth).Text;
+                        }
+                        if (AWebElement(oddsHomeXpth) != null) // Odds -Home
+                        {
+                            oddsHome = AWebElement(oddsHomeXpth).Text.ToUpper();
+                            if (oddsHome == "ASK" || oddsHome == " ")
                             {
-                                RefTag = match.RefTag,
-                                TeamName = match.HomeTeamName,
-                                Odds = oddsHome,
-                                DateTimeStamp = DateTime.Now,
-                                OddsType = "SmarketsHome"
-                            };
-
-                            db.InsertRecord("OddsRecords", OddsUpdated);
-                         
-                            match.SmarketsHomeOdds = oddsHome;
-                            OddsChanged = true;
+                                oddsHome = "0";
+                            }
+                        }                    
+                        if (AWebElement(oddsAwayXpth) != null) // Odds -Away
+                        {
+                            oddsAway = AWebElement(oddsAwayXpth).Text.ToUpper();
+                            if (oddsAway == "ASK" || oddsAway == " ")
+                            {
+                                oddsAway = "0";
+                            }
                         }
+                        if (AWebElement(dateTimeXpth).GetAttribute("datetime") != null)
+                        {
+                            dateTimeResult = AWebElement(dateTimeXpth).GetAttribute("datetime").Trim('Z').Replace("T", " ");                
+                            DateTime date = DateTime.Parse(dateTimeResult);
+                            dateTimeResult = date.ToString("dd/MM/yyyy HH:mm:ss");
+                        }
+
+                        Console.WriteLine("HomeTeam: {0} AwayTeam: {1} oddsHome: {2} oddsAway: {3} dateTime = {4}", homeTeam, awayTeam, oddsHome, oddsAway, dateTimeResult);
+                   
+                        MatchesModel match;
+
+                        //Check if RefTag exists
+                        if (db.CountRecordsByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult) > 0)
+                        {
+                            match = db.LoadRecordByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult);
+
+                            //If the scraped Home odds are different to the current odds in DB add the current odds to the oddsrecord object and update the current odds.
+                            if (oddsHome != match.SmarketsHomeOdds && oddsHome != "")
+                            {
+                                OddsRecordModel OddsUpdated = new OddsRecordModel
+                                {
+                                    RefTag = match.RefTag,
+                                    TeamName = match.HomeTeamName,
+                                    Odds = oddsHome,
+                                    DateTimeStamp = DateTime.Now,
+                                    OddsType = "SmarketsHome"
+                                };
+
+                                db.InsertRecord("OddsRecords", OddsUpdated);
+                         
+                                match.SmarketsHomeOdds = oddsHome;
+                                OddsChanged = true;
+                            }
                        
 
-                        //If the scraped Away odds are different to the current odds in DB add the current odds to the oddsrecord object and update the current odds.
-                        if (oddsAway != match.SmarketsAwayOdds && oddsAway != "")
-                        {
-                            OddsRecordModel OddsUpdated = new OddsRecordModel
+                            //If the scraped Away odds are different to the current odds in DB add the current odds to the oddsrecord object and update the current odds.
+                            if (oddsAway != match.SmarketsAwayOdds && oddsAway != "")
                             {
-                                RefTag = match.RefTag,
-                                TeamName = match.AwayTeamName,
-                                Odds = oddsAway,
-                                DateTimeStamp = DateTime.Now,
-                                OddsType = "SmarketsAway"
-                            };
+                                OddsRecordModel OddsUpdated = new OddsRecordModel
+                                {
+                                    RefTag = match.RefTag,
+                                    TeamName = match.AwayTeamName,
+                                    Odds = oddsAway,
+                                    DateTimeStamp = DateTime.Now,
+                                    OddsType = "SmarketsAway"
+                                };
 
-                            db.InsertRecord("OddsRecords", OddsUpdated);
+                                db.InsertRecord("OddsRecords", OddsUpdated);
 
-                            match.SmarketsAwayOdds = oddsAway;
-                            OddsChanged = true;
+                                match.SmarketsAwayOdds = oddsAway;
+                                OddsChanged = true;
 
-                        }
-                            if (OddsChanged == true)
-                            {
-                                db.UpsertRecordByRefTag("matches", match, match.RefTag);
                             }
-                    }
-                    else
-                    {
-                        //New game so Insert a new record 
-                        match = new MatchesModel
+                                if (OddsChanged == true)
+                                {
+                                    db.UpsertRecordByRefTag("matches", match, match.RefTag);
+                                }
+                        }
+                        else
+                        {
+                            //New game so Insert a new record 
+                            match = new MatchesModel
+                                {
+
+                                RefTag = homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult,
+                                HomeTeamName = homeTeam.Trim(),
+                                AwayTeamName = awayTeam.Trim(),
+                                StartDateTime = dateTimeResult,
+
+                                SmarketsHomeOdds = oddsHome,
+                                SmarketsAwayOdds = oddsAway
+
+                               // League = leagueTitle,
+                
+                                };
+                            db.UpsertRecordByRefTag("matches", match, match.RefTag);
+                        }
+
+                
+                        //Check to see if Team names are already in list. if not add them in
+                    
+                        if (GetUniversalTeamName(homeTeam) is null)
+                        {
+                            TeamNamesModel TeamNamesModel = new TeamNamesModel
                             {
-
-                            RefTag = homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult,
-                            HomeTeamName = homeTeam.Trim(),
-                            AwayTeamName = awayTeam.Trim(),
-                            StartDateTime = dateTimeResult,
-
-                            SmarketsHomeOdds = oddsHome,
-                            SmarketsAwayOdds = oddsAway
-
-                           // League = leagueTitle,
-                
+                                _idAlias = match.HomeTeamName,
+                                UniversalTeamName = match.HomeTeamName,
                             };
-                        db.UpsertRecordByRefTag("matches", match, match.RefTag);
-                }
-
-                
-                    //Check to see if Team names are already in list. if not add them in
-                    
-                    if (GetUniversalTeamName(homeTeam) is null)
-                    {
-                        TeamNamesModel TeamNamesModel = new TeamNamesModel
-                        {
-                            _idAlias = match.HomeTeamName,
-                            UniversalTeamName = match.HomeTeamName,
-                        };
-                        db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
+                            db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
                         
-                        //Updates the internal list of team names to include any new addtions from previous scrape
-                        Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
-                    }
+                            //Updates the internal list of team names to include any new addtions from previous scrape
+                            Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
+                        }
                     
 
-                    if (GetUniversalTeamName(awayTeam) is null)
-                    {
-                        TeamNamesModel TeamNamesModel = new TeamNamesModel
+                        if (GetUniversalTeamName(awayTeam) is null)
                         {
-                            _idAlias = match.AwayTeamName,
-                            UniversalTeamName = match.AwayTeamName,
-                        };
-                        db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
+                            TeamNamesModel TeamNamesModel = new TeamNamesModel
+                            {
+                                _idAlias = match.AwayTeamName,
+                                UniversalTeamName = match.AwayTeamName,
+                            };
+                            db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
 
-                        //Updates the internal list of team names to include any new addtions from previous scrape
-                        Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
-                    }
+                            //Updates the internal list of team names to include any new addtions from previous scrape
+                            Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
+                        }
                 }
-
-            //} DATE Time Range 
+            }
         }
 
 
