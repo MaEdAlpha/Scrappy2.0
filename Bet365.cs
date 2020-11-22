@@ -296,7 +296,7 @@ namespace Scrappy2._0
                                             RefTag = match.RefTag,
                                             TeamName = match.HomeTeamName,
                                             Odds = tempHomeOdds,
-                                            DateTimeStamp = DateTime.Now,
+                                            DateTimeStamp = DateTime.UtcNow,
                                             OddsType = "B365Home"
                                         };
 
@@ -314,7 +314,7 @@ namespace Scrappy2._0
                                             RefTag = match.RefTag,
                                             TeamName = match.AwayTeamName,
                                             Odds = tempAwayOdds,
-                                            DateTimeStamp = DateTime.Now,
+                                            DateTimeStamp = DateTime.UtcNow,
                                             OddsType = "B365Away"
                                         };
 
