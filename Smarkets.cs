@@ -107,7 +107,8 @@ namespace Scrappy2._0
                 string dateTimeResult = "";
                 string dateTimeXpth;
                 bool OddsChanged = false;
-
+                string urlXpth;
+                string sURL = "";
 
                 //ul[contains(@class,'event-list')]/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][i]/div[@class='contract-items  open ']
 
@@ -154,7 +155,8 @@ namespace Scrappy2._0
                 oddsAwayXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items')]/span[contains(@class, 'contract-item')][3]/div[contains(@class, 'current-price')]/span[contains(@class, 'bid')]/span[1]";
                 dateTimeXpth = "//ul[@class='event-list list-view  football']/li[@class='item-tile event-tile  upcoming layout-row   '][" + i + "]//div[@class ='event-date']/time";
                 //LeagueXpth = league
-
+                urlXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'event-info-container')]/a[contains(@class, 'title  with-score')]";
+                
 
 
                 if (IsWithinDays(dateTimeXpth) <= 72) //For Testing Purposes
@@ -193,8 +195,13 @@ namespace Scrappy2._0
                             //10 - 24 - 2020 21:00:00
 
                         }
+                        if (AWebElement(urlXpth).Text != null) //URL
+                        {
+                            sURL = AWebElement(urlXpth).GetAttribute("href");
 
-                        Console.WriteLine("HomeTeam: {0} AwayTeam: {1} oddsHome: {2} oddsAway: {3} dateTime = {4}", homeTeam, awayTeam, oddsHome, oddsAway, dateTimeResult);
+                        }
+
+                    Console.WriteLine("HomeTeam: {0} AwayTeam: {1} oddsHome: {2} oddsAway: {3} dateTime = {4}", homeTeam, awayTeam, oddsHome, oddsAway, dateTimeResult);
 
 
                         ////////////////////////// Add the match the DB
@@ -260,11 +267,11 @@ namespace Scrappy2._0
                                 StartDateTime = dateTimeResult,
 
                                 SmarketsHomeOdds = oddsHome,
-                                SmarketsAwayOdds = oddsAway
+                                SmarketsAwayOdds = oddsAway,
 
-                                // League = leagueTitle,
-
-                            };
+                                URLSmarkets = sURL
+                                                       
+                    };
                             db.UpsertRecordByRefTag("matches", match, match.RefTag);
                         }
 
