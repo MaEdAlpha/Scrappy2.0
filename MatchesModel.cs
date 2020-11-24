@@ -24,6 +24,8 @@ namespace Scrappy2._0
             public string League { get; set; }
             public double OccurrenceHome { get; set; }
             public double OccurrenceAway { get; set; }
+            public string URLB365 { get; set; }
+            public string URLSmarkets { get; set; }
 
     }
 

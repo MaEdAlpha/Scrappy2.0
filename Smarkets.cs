@@ -106,6 +106,8 @@ namespace Scrappy2._0
                 string dateTimeResult = "";
                 string dateTimeXpth;
                 bool OddsChanged = false;
+                string urlXpth;
+                string sURL = "";
                 do
                 {
                     try
@@ -140,6 +142,7 @@ namespace Scrappy2._0
                 oddsHomeXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items')]/span[contains(@class, 'contract-item')][1]/div[contains(@class, 'current-price')]/span[contains(@class,'bid')]/span[1]";
                 oddsAwayXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'contract-items')]/span[contains(@class, 'contract-item')][3]/div[contains(@class, 'current-price')]/span[contains(@class, 'bid')]/span[1]";
                 dateTimeXpth = "//ul[@class='event-list list-view  football']/li[@class='item-tile event-tile  upcoming layout-row   '][" + i + "]//div[@class ='event-date']/time";
+                urlXpth = "//ul[@class='event-list list-view  football']/li[contains(@class, 'item-tile event-tile  upcoming layout-row')][" + i + "]/div[contains(@class, 'event-info-container')]/a[contains(@class, 'title  with-score')]";
                 //LeagueXpth = league
 
                 if (IsWithinDays(dateTimeXpth) <= 72) // if Xpath DateTime is less than specified time (hours)
@@ -174,8 +177,12 @@ namespace Scrappy2._0
                             DateTime date = DateTime.Parse(dateTimeResult);
                             dateTimeResult = date.ToString("dd/MM/yyyy HH:mm:ss");
                         }
+                        if (AWebElement(urlXpth).Text != null) //URL
+                        {
+                            sURL = AWebElement(urlXpth).GetAttribute("href");
 
-                        Console.WriteLine("HomeTeam: {0} AwayTeam: {1} oddsHome: {2} oddsAway: {3} dateTime = {4}", homeTeam, awayTeam, oddsHome, oddsAway, dateTimeResult);
+                        }
+                    Console.WriteLine("HomeTeam: {0} AwayTeam: {1} oddsHome: {2} oddsAway: {3} dateTime = {4}", homeTeam, awayTeam, oddsHome, oddsAway, dateTimeResult);
                    
                         MatchesModel match;
 
@@ -192,7 +199,7 @@ namespace Scrappy2._0
                                     RefTag = match.RefTag,
                                     TeamName = match.HomeTeamName,
                                     Odds = oddsHome,
-                                    DateTimeStamp = DateTime.Now,
+                                    DateTimeStamp = DateTime.UtcNow,
                                     OddsType = "SmarketsHome"
                                 };
 
@@ -211,7 +218,7 @@ namespace Scrappy2._0
                                     RefTag = match.RefTag,
                                     TeamName = match.AwayTeamName,
                                     Odds = oddsAway,
-                                    DateTimeStamp = DateTime.Now,
+                                    DateTimeStamp = DateTime.UtcNow,
                                     OddsType = "SmarketsAway"
                                 };
 
@@ -238,11 +245,12 @@ namespace Scrappy2._0
                                 StartDateTime = dateTimeResult,
 
                                 SmarketsHomeOdds = oddsHome,
-                                SmarketsAwayOdds = oddsAway
+                                SmarketsAwayOdds = oddsAway,
 
-                               // League = leagueTitle,
-                
-                                };
+                                URLSmarkets = sURL
+                                // League = leagueTitle,
+
+                            };
                             db.UpsertRecordByRefTag("matches", match, match.RefTag);
                         }
 

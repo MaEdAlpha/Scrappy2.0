@@ -296,7 +296,7 @@ namespace Scrappy2._0
                                             RefTag = match.RefTag,
                                             TeamName = match.HomeTeamName,
                                             Odds = tempHomeOdds,
-                                            DateTimeStamp = DateTime.Now,
+                                            DateTimeStamp = DateTime.UtcNow,
                                             OddsType = "B365Home"
                                         };
 
@@ -314,7 +314,7 @@ namespace Scrappy2._0
                                             RefTag = match.RefTag,
                                             TeamName = match.AwayTeamName,
                                             Odds = tempAwayOdds,
-                                            DateTimeStamp = DateTime.Now,
+                                            DateTimeStamp = DateTime.UtcNow,
                                             OddsType = "B365Away"
                                         };
 
@@ -690,6 +690,7 @@ namespace Scrappy2._0
             match.B365AwayOdds = Convert.ToDouble(awayOddsPath);
             match.B365BTTSOdds = Convert.ToDouble(btsYesPath);
             match.B365O25GoalsOdds= Convert.ToDouble(overTwoFivePath);
+            match.URLB365 = driver.Url;
 
             //Get Occurrence of 2up based on game odds
             MatchOccurence.GetOccurrences(match);
