@@ -18,9 +18,11 @@ namespace Scrappy2._0
     {
         private static Dictionary<string, string> smarketsUrlDict = new Dictionary<string, string>();
         private static Dictionary<string, string> customList = new Dictionary<string, string>();
+        private static Dictionary<string, string> TabRefList = new Dictionary<string, string>();
         public static int pathCount = 0; //Checksum comparer.
         private static bool validate;
         private static string userInput;
+   
 
         public static void InitiateList()
         {
@@ -81,7 +83,22 @@ namespace Scrappy2._0
         {
             foreach (var league in customList)
             {
-                driver.Navigate().GoToUrl(league.Value);
+                
+                string strTempValue;
+
+                if (TabRefList.TryGetValue(league.Key, out strTempValue))
+                {
+                        driver.SwitchTo().Window(strTempValue);
+                }
+                else
+                {
+                    ((IJavaScriptExecutor)driver).ExecuteScript("window.open(\'" + league.Value + "\')");
+                    driver.SwitchTo().Window(driver.WindowHandles.Last());
+
+                    //Build a list of league names and their window handle IDs
+                    TabRefList.Add(league.Key, driver.CurrentWindowHandle);
+                }
+
                 Thread.Sleep(2500);
                 SetImplicitWait(7);
                 GetData();
