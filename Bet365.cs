@@ -20,11 +20,13 @@ namespace Scrappy2._0
     {
         public static Dictionary<string, string> leagueDivisionDict = new Dictionary<string, string>();
         public static Dictionary<string, string> customList = new Dictionary<string, string>();
+        private static Dictionary<string, string> TabRefList = new Dictionary<string, string>();
         private static readonly List<string> countries = new List<string>();
         private static int masterCount;
         private static int tmsCount;
         private static int pathCount;
         private const int DATERANGE = 3; //days
+        private static bool NewTabAdded = false;
         public static void LeagueSelection()
         {
             bool validate;
@@ -90,6 +92,7 @@ namespace Scrappy2._0
                 if(leagueExists == true)
                 {
                     GetLeagueData(DATERANGE, leagueTitle, divisionTitle); 
+
                 } else {
                     Console.WriteLine("INACTIVE: {1}, {0}", divisionTitle, leagueTitle);
                 }
@@ -133,8 +136,45 @@ namespace Scrappy2._0
                     {
                         Console.WriteLine("League xPath not found. Skipping {0} {1}", _divisionTitle, _leagueTitle);
                     } else {
+
+                    if (Program.bttsEnabled)
+                    {
+                        //Here we need to check if we are going to scrape BTTS. If Yes then just use 1 tab
                         leagueIWebElement.Click();
                     }
+                    else 
+                    {
+                        //Else open a tab for each league and loop through
+
+                        //Check to see if the current league already has a tab open 
+                        string strTempValue;
+                        
+                        if (TabRefList.TryGetValue(_leagueTitle, out strTempValue))
+                        {
+                            //If it does set the focus to that tab
+                            driver.SwitchTo().Window(strTempValue);
+                        }
+                        else
+                        {
+                            //If it doesn't then open a new tab and add the tab handler to the dictionary
+
+                            //B365 don't have the href in the HTML so we will open the page to get the URL
+                            leagueIWebElement.Click();
+
+                            //Get the URL for the current page and duplicate it in a new tab.
+                            ((IJavaScriptExecutor)driver).ExecuteScript("window.open(\'" + driver.Url + "\')");
+                            driver.SwitchTo().Window(driver.WindowHandles.Last());
+
+                            //Add the handler and league to the dictionary. 
+                            TabRefList.Add(_leagueTitle, driver.CurrentWindowHandle);
+
+                            NewTabAdded = true;
+
+                        }
+
+                    }
+
+                }
             }
             catch (NullReferenceException)
             {
@@ -369,7 +409,23 @@ namespace Scrappy2._0
                 {
                     Console.WriteLine("\n Total Matches found: {0} \n", leagueMatchCount);
                     RandomSleep(1930);
-                    driver.Navigate().Back();
+
+                    if (Program.bttsEnabled == false)
+                    {
+                        //If using multiple tabs ensure we are on the main tab
+                        driver.SwitchTo().Window(driver.WindowHandles.First());
+
+                        if (NewTabAdded == true)
+                        {
+                            driver.Navigate().Back();
+                            NewTabAdded = false;
+                        }
+                    }
+                    else
+                    {
+                        driver.Navigate().Back();
+                    }
+                    
                 }
             }
         }
