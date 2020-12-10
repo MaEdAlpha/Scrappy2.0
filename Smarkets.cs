@@ -192,7 +192,7 @@ namespace Scrappy2._0
                         {
                             dateTimeResult = AWebElement(dateTimeXpth).GetAttribute("datetime").Trim('Z').Replace("T", " ");                
                             DateTime date = DateTime.Parse(dateTimeResult);
-                            dateTimeResult = date.ToString("dd/MM/yyyy HH:mm:ss");
+                            dateTimeResult = date.ToString("dd'/'MM'/'yyyy HH:mm:ss");
                         }
                         if (AWebElement(urlXpth).Text != null) //URL
                         {
@@ -265,8 +265,7 @@ namespace Scrappy2._0
                                 SmarketsAwayOdds = oddsAway,
 
                                 URLSmarkets = sURL
-                                // League = leagueTitle,
-
+                                
                             };
                             db.UpsertRecordByRefTag("matches", match, match.RefTag);
                         }

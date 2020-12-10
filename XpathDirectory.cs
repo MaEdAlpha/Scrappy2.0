@@ -45,9 +45,9 @@ namespace Scrappy2._0
         {
             //div[contains(@class, 'rcl-ParticipantFixtureDetails_TeamNames')] / child::div[@class = 'rcl-ParticipantFixtureDetails_TeamWrapper '] / child::div[contains(text(), '
 
-            string start = " //div[contains(@class, 'rcl-ParticipantFixtureDetails_TeamNames')] / child::div[@class = 'rcl-ParticipantFixtureDetails_TeamWrapper '] / child::div[contains(text(), '";
+            string start = " //div[contains(@class, 'rcl-ParticipantFixtureDetails_TeamNames')] / child::div[@class = 'rcl-ParticipantFixtureDetails_TeamWrapper '] / child::div[contains(text(), \"";
             string middle = matchVariableXpath;
-            string end = "')]";
+            string end = "\")]";
 
             string xPath = start + middle + end;
             return xPath;

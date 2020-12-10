@@ -228,7 +228,7 @@ namespace Scrappy2._0
                                 string item = matchWebElement.Text;
                                 string[] matchDetails = matchWebElement.Text.Split("\r\n");
 
-                                finalDate = ConverToDateTime(tempDate, matchDetails[0]).ToUniversalTime().ToString("dd/MM/yyyy HH:mm:ss");
+                                finalDate = ConverToDateTime(tempDate, matchDetails[0]).ToUniversalTime().ToString("dd'/'MM'/'yyyy HH:mm:ss");
                                 matchTime = ConverToDateTime(tempDate, matchDetails[0]).ToString("HH:mm");
 
                                 string ScrapedHomeTeam = matchDetails[1];
@@ -342,7 +342,9 @@ namespace Scrappy2._0
 
                                         db.InsertRecord("OddsRecords", OddsUpdated);
 
-                                        match.B365HomeOdds = Convert.ToDouble(tempHomeOdds);
+                                        //Add the previous odds to the matches object before updating
+                                        match.PreviousB365HomeOdds = match.B365HomeOdds;
+
                                         OddsChanged = true;
                                     }
 
@@ -360,22 +362,44 @@ namespace Scrappy2._0
 
                                         db.InsertRecord("OddsRecords", OddsUpdated);
 
-                                        match.B365AwayOdds = Convert.ToDouble(tempAwayOdds);
+                                        //Add the previous odds to the matches object before updating
+                                        match.PreviousB365AwayOdds = match.B365AwayOdds;
+
                                         OddsChanged = true;
                                     }
 
                                     if (OddsChanged == true)
                                     {
-                                        //If the odds changed update the database else no need
-                                        WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
-                                        
+                                        //If the odds changed update the matches object
+                                        match.B365HomeOdds = Convert.ToDouble(tempHomeOdds);
+                                        match.B365DrawOdds = Convert.ToDouble(tempDrawOdds);
+                                        match.B365AwayOdds = Convert.ToDouble(tempAwayOdds);
+                                        match.League = leagueTitle;
+
+                                        WriteToDataBase(match);
+
                                         //Reset odds changed variable
                                         OddsChanged = false;
                                     }
                                 }
                                 else
                                 {
-                                    WriteToDB(leagueTitle, tempHomeOdds, tempDrawOdds, tempAwayOdds, matchDetails, finalDate);
+
+                                    MatchesModel Newmatch = new MatchesModel
+                                    {
+                                        RefTag = matchDetails[1].Trim() + " " + matchDetails[2].Trim() + " " + finalDate,
+                                        HomeTeamName = matchDetails[1].Trim(),
+                                        AwayTeamName = matchDetails[2].Trim(),
+                                        B365HomeOdds = Convert.ToDouble(tempHomeOdds),
+                                        B365DrawOdds = Convert.ToDouble(tempDrawOdds),
+                                        B365AwayOdds = Convert.ToDouble(tempAwayOdds),
+                                        League = leagueTitle,
+                                        StartDateTime = finalDate,
+                                        PreviousB365HomeOdds = 0,
+                                        PreviousB365AwayOdds = 0
+                                    };
+
+                                    WriteToDataBase(Newmatch);
                                 }
 
                             /////////////////////////////////////////////////////////////////
@@ -474,7 +498,13 @@ namespace Scrappy2._0
             return null; //if no postponed matches exist, return a null list to be used in if else statement for getting odds.
         }
 
-        private static void WriteToDB(string leagueTitle, string tempHomeOdds, string tempDrawOdds, string tempAwayOdds, string[] matchDetails, string finalDate)
+
+        private static void WriteToDataBase(MatchesModel match)
+        {
+            db.UpsertRecordByRefTag("matches", match, match.RefTag);
+        }
+
+            private static void WriteToDB(string leagueTitle, string tempHomeOdds, string tempDrawOdds, string tempAwayOdds, string[] matchDetails, string finalDate)
         {
            
             MatchesModel match;
@@ -684,8 +714,8 @@ namespace Scrappy2._0
         private static bool InPlay(string home, string away)
         {
 
-            string forHomeTeam = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), '"+ home.Trim() +"')]";
-            string forAwayTeam = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][2]/div[contains(text(), '" + away.Trim() + "')]";
+            string forHomeTeam = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), \"" + home.Trim() + "\")]";
+            string forAwayTeam = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][2]/div[contains(text(), \"" + away.Trim() + "\")]";
             Thread.Sleep(1800);
             bool homeTeam = AWebElement(forHomeTeam) != null ? true : false;
             Thread.Sleep(2100);
@@ -695,7 +725,7 @@ namespace Scrappy2._0
             if(homeTeam && awayTeamMatch)
             {
                 //This checks the div element that contains the inPlay clock data value. 
-                string forInPlayClock = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), '" + home.Trim() + "')]/parent::div/parent::div/parent::div/parent::div/div/div[contains(@class,'Clock')]/div[contains(@class,'ClockInPlay_Extra')]";
+                string forInPlayClock = "//div[contains(@class , 'rcl-ParticipantFixtureDetails_TeamWrapper ')][1]/div[contains(text(), \"" + home.Trim() + "\")]/parent::div/parent::div/parent::div/parent::div/div/div[contains(@class,'Clock')]/div[contains(@class,'ClockInPlay_Extra')]";
                 //If does not retrun null, retrun true, else return false
                 bool isInPlay = AWebElement(forInPlayClock) != null ? true : false;
                 return isInPlay;
@@ -705,7 +735,7 @@ namespace Scrappy2._0
         }
         private static void GrabBTTSData(string HomeTeamName, string AwayTeamName, string date, string matchTime)
         {
-            string danielsDateData = ConverToDateTime(date, matchTime).ToString("dd/MM/yyyy HH:mm:ss");
+            string danielsDateData = ConverToDateTime(date, matchTime).ToString("dd'/'MM'/'yyyy HH:mm:ss");
             string danielsMatchTimedata = matchTime;
             
             RandomSleep(700);

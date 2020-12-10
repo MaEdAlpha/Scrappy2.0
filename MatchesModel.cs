@@ -26,6 +26,8 @@ namespace Scrappy2._0
             public double OccurrenceAway { get; set; }
             public string URLB365 { get; set; }
             public string URLSmarkets { get; set; }
+            public double PreviousB365HomeOdds { get; set; }
+            public double PreviousB365AwayOdds { get; set; }
 
     }
 

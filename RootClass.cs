@@ -34,7 +34,17 @@ namespace Scrappy2._0
             driver = new ChromeDriver(options);
             timeZero = DateTime.UtcNow;
             RandomSleep(2099);
-            driver.Navigate().GoToUrl(url);
+
+            //Open a 2nd tab. Hack 
+            ((IJavaScriptExecutor)driver).ExecuteScript("window.open(\'" + url + "\')");
+            
+            //Close original tab
+            driver.SwitchTo().Window(driver.WindowHandles.First());
+            driver.Close();
+
+            RootClass.driver.SwitchTo().Window(driver.WindowHandles.Last());
+
+
             RandomSleep(3000);
         }
 
