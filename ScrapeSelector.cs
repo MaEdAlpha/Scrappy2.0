@@ -15,7 +15,7 @@ namespace Scrappy2._0
         {
             try
             {
-                Console.WriteLine("Choose from the following options: \n 1. Bet365 \n 2. SMarkets \n 3.Quit");
+                Console.WriteLine("Choose from the following options: \n 1. Bet365 \n 2. SMarkets \n 3. Matchbook\n 4. Quit");
                 int selection = Convert.ToInt32(Console.ReadLine());
                 return selection;
             }
@@ -57,6 +57,16 @@ namespace Scrappy2._0
                 Smarkets.ScrapeSelection();
             }
             if (_selection == 3)
+            {
+                //MatchbookCode Initialize
+                Program.scrapingMatchbook = true;
+                RootClass.GetRootPage("https://www.matchbook.com/events/soccer");
+                RootClass.SetImplicitWait(7);
+                Matchbook.InitiateList();
+                Matchbook.ScrapeSelection();
+            }
+
+            if (_selection == 4)
             {
                 RootClass.Quit();
             }

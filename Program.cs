@@ -10,6 +10,7 @@ namespace Scrappy2._0
         public static bool settingUp = true;
         public static bool scraping365 = false;
         public static bool scrapingSmarkets = false;
+        public static bool scrapingMatchbook = false;
         public static bool bttsEnabled = false;
         public static bool pathListPopulated = false;
         private static int loop;
@@ -50,6 +51,10 @@ namespace Scrappy2._0
             while (scrapingSmarkets)
             {
                 Smarkets.ScrapeLeague();
+            }
+            while (scrapingMatchbook)
+            {
+                Matchbook.ScrapeLeague();
             }
         }
     }

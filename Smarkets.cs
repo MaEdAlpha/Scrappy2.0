@@ -199,6 +199,55 @@ namespace Scrappy2._0
                             sURL = AWebElement(urlXpth).GetAttribute("href");
 
                         }
+
+
+                    //Get univeral team names
+                    if (CheckifTeamNameAliasExists(homeTeam) is null)
+                    {
+                        //Doesn't exist so must be a new alias for an exisiting Team name. Request user input.
+                        string strScrapedName = homeTeam;
+                        Console.WriteLine(" Enter the universal team name for: " + homeTeam);
+                        homeTeam = Convert.ToString(Console.ReadLine());
+
+                        TeamNamesModel TeamNamesModel = new TeamNamesModel
+                        {
+                            _idAlias = strScrapedName,
+                            UniversalTeamName = homeTeam,
+                        };
+                        db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
+
+                        //Updates the internal list of team names to include any new addtions from previous scrape
+                        Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
+                    }
+                    else
+                    {
+                        homeTeam = GetUniversalTeamName(homeTeam);
+                    }
+
+
+                    if (CheckifTeamNameAliasExists(awayTeam) is null)
+                    {
+                        //Doesn't exist so must be a new alias for an exisiting Team name. Request user input.
+                        string strScrapedName = awayTeam;
+                        Console.WriteLine(" Enter the universal team name for: " + awayTeam);
+                        awayTeam = Convert.ToString(Console.ReadLine());
+
+                        TeamNamesModel TeamNamesModel = new TeamNamesModel
+                        {
+                            _idAlias = strScrapedName,
+                            UniversalTeamName = awayTeam,
+                        };
+                        db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
+
+                        //Updates the internal list of team names to include any new addtions from previous scrape
+                        Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
+                    }
+                    else
+                    {
+                        awayTeam = GetUniversalTeamName(awayTeam);
+                    }
+
+
                     Console.WriteLine("HomeTeam: {0} AwayTeam: {1} oddsHome: {2} oddsAway: {3} dateTime = {4}", homeTeam, awayTeam, oddsHome, oddsAway, dateTimeResult);
                    
                         MatchesModel match;
@@ -207,6 +256,9 @@ namespace Scrappy2._0
                         if (db.CountRecordsByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult) > 0)
                         {
                             match = db.LoadRecordByRefTag<MatchesModel>("matches", homeTeam.Trim() + " " + awayTeam.Trim() + " " + dateTimeResult);
+
+                        //Make sure the URL is set
+                        match.URLSmarkets = sURL;
 
                             //If the scraped Home odds are different to the current odds in DB add the current odds to the oddsrecord object and update the current odds.
                             if (oddsHome != match.SmarketsHomeOdds && oddsHome != "")
@@ -270,35 +322,6 @@ namespace Scrappy2._0
                             db.UpsertRecordByRefTag("matches", match, match.RefTag);
                         }
 
-                
-                        //Check to see if Team names are already in list. if not add them in
-                    
-                        if (GetUniversalTeamName(homeTeam) is null)
-                        {
-                            TeamNamesModel TeamNamesModel = new TeamNamesModel
-                            {
-                                _idAlias = match.HomeTeamName,
-                                UniversalTeamName = match.HomeTeamName,
-                            };
-                            db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
-                        
-                            //Updates the internal list of team names to include any new addtions from previous scrape
-                            Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
-                        }
-                    
-
-                        if (GetUniversalTeamName(awayTeam) is null)
-                        {
-                            TeamNamesModel TeamNamesModel = new TeamNamesModel
-                            {
-                                _idAlias = match.AwayTeamName,
-                                UniversalTeamName = match.AwayTeamName,
-                            };
-                            db.InsertRecord("TeamNamesLibrary", TeamNamesModel);
-
-                            //Updates the internal list of team names to include any new addtions from previous scrape
-                            Program.TeamNamesLibrary = db.LoadRecords<TeamNamesModel>("TeamNamesLibrary");
-                        }
                 }
             }
         }
