@@ -183,6 +183,22 @@ namespace Scrappy2._0
             }
         }
 
+        public static Boolean GameOK(string GameInfo)
+        {
+
+            //if there are more than 2 /r in the match string then there is a score present so the match is inplay
+            int inumLines = GameInfo.Split("\r\n").Length;
+
+            if (inumLines > 3)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+
+        }
         public static void GetLeagueData(int DATERANGE, string leagueTitle, string divisionTitle)
         {
             {
@@ -200,7 +216,7 @@ namespace Scrappy2._0
                 Console.Write("\n Building Directory {0}", leagueTitle);
                 RandomSleep(1500);
                 //All dates and match titles. 
-                string forAllMatches = "//div[contains(@class, 'sgl-MarketFixtureDetailsLabelExpand3 gl-Market_General gl-Market_General-columnheader gl-Market_General-haslabels ')]/child::div";
+                string forAllMatches = "//div[contains(@class, 'sgl-MarketFixtureDetailsLabel gl-Market_General gl-Market_General-columnheader gl-Market_General-haslabels ')]/child::div";
                 List<IWebElement> matchesList = WebElements(forAllMatches);
 
                 try
@@ -221,8 +237,8 @@ namespace Scrappy2._0
                         //Match Time
                         else if (matchWebElement.Text.Contains(":"))
                         {
-                          
-                            if (ScrapeThisMatch(pathCount))
+
+                            if (GameOK(matchWebElement.Text))
                             {
                                
                                 string item = matchWebElement.Text;
@@ -414,6 +430,11 @@ namespace Scrappy2._0
                             pathCount++;
                             masterCount++;
                             tmsCount++;
+                            }
+                            else
+                            {
+                                //this match is inplay or postponed. Move on to the next
+                                pathCount++;
                             }
                         }
                     }

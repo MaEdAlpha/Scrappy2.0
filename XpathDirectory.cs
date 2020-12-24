@@ -55,7 +55,8 @@ namespace Scrappy2._0
 
         public static string GetOddsXpath(string index)
         {
-            string start = "//div[@class= 'sgl-MarketOddsExpand gl-Market_General gl-Market_General-columnheader ']/div['";
+            //
+            string start = "//div[contains(@class, 'sgl-MarketOddsExpand gl-Market_General gl-Market_General-columnheader ')]/div['";
             string middle = index;
             string end = "']/span";
 
