@@ -8,7 +8,8 @@ namespace Scrappy2._0
     class Program
     {
         public static bool settingUp = true;
-        public static bool scraping365 = false;
+        public static bool scraping365Full = false;
+        public static bool scraping365HA = false;
         public static bool scrapingSmarkets = false;
         public static bool scrapingMatchbook = false;
         public static bool bttsEnabled = false;
@@ -31,7 +32,7 @@ namespace Scrappy2._0
                 settingUp = false;
             }
 
-            while (scraping365) {
+            while (scraping365Full) {
                     loop = 0;
                     RootClass.SetImplicitWait(2);
                     Bet365.Scrape();
@@ -41,6 +42,24 @@ namespace Scrappy2._0
                     Bet365.CollectData();
                     loop++;
                     if(loop > 5)
+                    {
+                        MatchPath.ResetList(); // Otherwise we build off of this. 
+                        pathListPopulated = false;
+                    }
+                }
+            }
+
+            while (scraping365HA)
+            {
+                loop = 0;
+                Bet365.ScrapeHA();
+                pathListPopulated = true;
+                Bet365.DisplaySummary();
+                while (bttsEnabled && pathListPopulated)
+                {
+                    Bet365.CollectData();
+                    loop++;
+                    if (loop > 5)
                     {
                         MatchPath.ResetList(); // Otherwise we build off of this. 
                         pathListPopulated = false;

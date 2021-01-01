@@ -7,6 +7,11 @@ using System.Threading;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
+using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Support.UI;
+using HtmlAgilityPack;
+
 namespace Scrappy2._0
 {
     class RootClass : Humanize
@@ -15,7 +20,24 @@ namespace Scrappy2._0
         public static DateTime timeZero;
         public static MongoCRUD db;
 
-        public static void GetRootPage(string url)
+
+        public static void StartGecko(bool IsHeadless)
+        {
+
+            FirefoxDriverService service = FirefoxDriverService.CreateDefaultService(@"C:\geckodriver-v0.28.0-win64");
+            service.FirefoxBinaryPath = @"C:\Program Files\Mozilla Firefox\firefox.exe";
+
+            FirefoxOptions options = new FirefoxOptions();
+            options.AddArguments("--headless");
+            options.AddArguments("--private");
+            options.SetPreference("dom.webdriver.enabled", false);
+            options.SetPreference("useAutomationExtension", false);
+
+            driver = new FirefoxDriver(service, options);
+
+        }
+
+        public static void GetRootPage(string url, bool IsHeadless)
         {
             ChromeOptions options = new ChromeOptions();
             options.AddArgument("--test-type");
@@ -31,6 +53,15 @@ namespace Scrappy2._0
             options.AddArguments("--start-maximized");
             options.AddExcludedArguments("enable-automation");
 
+            if (IsHeadless == true)
+            {
+                options.AddArguments("--headless");
+                options.AddArguments("--disable-gpu");
+                options.AddArguments("--allow-insecure-localhost");
+                options.AddArguments("--allow-running-insecure-content");
+                options.AddArguments("--no-sandbox");
+            }
+
             driver = new ChromeDriver(options);
             timeZero = DateTime.UtcNow;
             RandomSleep(2099);
@@ -42,7 +73,10 @@ namespace Scrappy2._0
             driver.SwitchTo().Window(driver.WindowHandles.First());
             driver.Close();
 
+            
             RootClass.driver.SwitchTo().Window(driver.WindowHandles.Last());
+            
+            
 
 
             RandomSleep(3000);
@@ -71,6 +105,15 @@ namespace Scrappy2._0
                 return null;
             }
         }
+
+        public static HtmlNodeCollection GetElements(string HTML,string xPath)
+        //Gecko    
+        {
+            var doc = new HtmlDocument();
+            doc.LoadHtml(HTML);
+            
+            return doc.DocumentNode.SelectNodes(xPath);
+            }
 
         public static List<IWebElement> WebElements(string xPath) //Return a list of IWebElements.
         {
